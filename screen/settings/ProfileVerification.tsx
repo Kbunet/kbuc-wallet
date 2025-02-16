@@ -199,6 +199,15 @@ const ProfileVerification: React.FC = () => {
     }
   }, [route.params?.scannedData, route.params?.scanTime]);
 
+  const formatRPs = (num: number): { formatted: string, smallAmount: string | null } => {
+    if (num === 0) return { formatted: '0', smallAmount: null };
+    
+    // Format with 8 decimal places and remove trailing zeros
+    const formatted = num.toFixed(8).replace(/\.?0+$/, '');
+    
+    return { formatted, smallAmount: null };
+  };
+
   const formatLargeNumber = (num: number): string => {
     const absNum = Math.abs(num);
     if (absNum >= 1e9) {
@@ -209,6 +218,79 @@ const ProfileVerification: React.FC = () => {
       return (num / 1e3).toFixed(2) + 'K';
     }
     return num.toString();
+  };
+
+  const InfoRow = ({ label, value, copyable = false, info }: { label: string; value: string | number; copyable?: boolean; info?: string }) => {
+    // Don't truncate labels, only truncate values if they're too long
+    const displayValue = typeof value === 'string' ? 
+      (value.length > 10 ? value.substring(0, 10) + '...' : value) : 
+      value;
+
+    const isTrustLevel = label === 'Trust Level';
+    const isRentalPeriod = label === 'Rental Period';
+    
+    let finalValue = displayValue;
+
+    if (isTrustLevel && typeof value === 'number') {
+      const { formatted } = formatRPs(value);
+      finalValue = formatted + ' RPs';
+    } else if (isRentalPeriod) {
+      finalValue = `${value} blocks (~${((Number(value) * 10)/86400).toFixed(2)} days)`;
+    }
+
+    // Get or create animation value for this row
+    if (copyable && !copyAnimations.current[label]) {
+      copyAnimations.current[label] = new Animated.Value(0);
+    }
+      
+    return (
+      <TouchableOpacity 
+        style={styles.infoRow}
+        onPress={() => info && Alert.alert(label, info)}
+        activeOpacity={info ? 0.7 : 1}
+      >
+        <View style={styles.infoRowLeft}>
+          <Text style={[styles.label, stylesHook.label]}>{label}</Text>
+          {info && (
+            <Icon
+              name="info"
+              type="feather"
+              size={16}
+              style={stylesHook.infoIcon}
+            />
+          )}
+        </View>
+        <View style={styles.infoRowRight}>
+          <Text style={[styles.value, stylesHook.value]}>
+            {finalValue}
+          </Text>
+          {copyable && (
+            <TouchableOpacity
+              onPress={() => handleCopyText(value.toString(), label)}
+              style={styles.copyButton}
+            >
+              <Animated.View
+                style={{
+                  transform: [{
+                    scale: copyAnimations.current[label].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 0.8],
+                    }),
+                  }],
+                }}
+              >
+                <Icon
+                  name={copiedMap[label] ? 'check' : 'copy'}
+                  type="feather"
+                  size={16}
+                  style={copiedMap[label] ? stylesHook.copiedIcon : stylesHook.copyIcon}
+                />
+              </Animated.View>
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   const stylesHook = StyleSheet.create({
@@ -272,78 +354,6 @@ const ProfileVerification: React.FC = () => {
       backgroundColor: '#FFFFFF',
     }
   });
-
-  const InfoRow = ({ label, value, copyable = false, info }: { label: string; value: string | number; copyable?: boolean; info?: string }) => {
-    // Don't truncate labels, only truncate values if they're too long
-    const displayValue = typeof value === 'string' ? 
-      (value.length > 10 ? value.substring(0, 10) + '...' : value) : 
-      value;
-
-    const isTrustLevel = label === 'Trust Level';
-    const isRentalPeriod = label === 'Rental Period';
-    
-    let finalValue = displayValue;
-    if (isTrustLevel && typeof value === 'number') {
-      finalValue = formatLargeNumber(value) + ' RPs';
-    } else if (isRentalPeriod) {
-      finalValue = `${value} blocks (~${((Number(value) * 10)/86400).toFixed(2)} days)`;
-    }
-
-    // Get or create animation value for this row
-    if (copyable && !copyAnimations.current[label]) {
-      copyAnimations.current[label] = new Animated.Value(0);
-    }
-      
-    return (
-      <TouchableOpacity 
-        style={styles.infoRow}
-        onPress={() => info && Alert.alert(label, info)}
-        activeOpacity={info ? 0.7 : 1}
-      >
-        <View style={styles.labelContainer}>
-          <Text style={[styles.label, stylesHook.label]} numberOfLines={2}>{label}</Text>
-          {info && (
-            <Icon 
-              name="info" 
-              size={16} 
-              style={[styles.infoIcon, stylesHook.infoIcon]} 
-            />
-          )}
-        </View>
-        <View style={[styles.valueContainer, isRentalPeriod && styles.rentalPeriodContainer]}>
-          <Text style={[styles.value, stylesHook.value, isRentalPeriod && styles.rentalPeriodValue]} numberOfLines={isRentalPeriod ? 2 : 1}>
-            {finalValue}
-          </Text>
-          {copyable && (
-            <TouchableOpacity 
-              onPress={() => handleCopyText(value.toString(), label)}
-              style={styles.copyButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Animated.View style={{
-                transform: [{
-                  scale: copyAnimations.current[label].interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [1, 0.8],
-                  })
-                }]
-              }}>
-                <Icon 
-                  name={copiedMap[label] ? "check" : "content-copy"}
-                  size={18} 
-                  style={[
-                    styles.copyIcon,
-                    stylesHook.copyIcon,
-                    copiedMap[label] && stylesHook.copiedIcon
-                  ]} 
-                />
-              </Animated.View>
-            </TouchableOpacity>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
 
   const styles = StyleSheet.create({
     scrollView: {
@@ -419,27 +429,17 @@ const ProfileVerification: React.FC = () => {
       borderBottomColor: 'rgba(0, 0, 0, 0.05)',
       minHeight: 52,
     },
-    labelContainer: {
+    infoRowLeft: {
       flexDirection: 'row',
       alignItems: 'flex-start',
       flex: 0.4,
       paddingRight: 12,
     },
-    valueContainer: {
+    infoRowRight: {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 0.6,
       justifyContent: 'flex-end',
-    },
-    rentalPeriodContainer: {
-      alignItems: 'flex-end',
-    },
-    rentalPeriodValue: {
-      textAlign: 'right',
-    },
-    copyButton: {
-      padding: 8,
-      marginLeft: 8,
     },
     label: {
       fontSize: 16,
@@ -451,6 +451,10 @@ const ProfileVerification: React.FC = () => {
       marginRight: 8,
       flex: 1,
     },
+    copyButton: {
+      padding: 8,
+      marginLeft: 8,
+    },
     copyIcon: {
       color: colors.foregroundColor,
       opacity: 0.6,
@@ -458,6 +462,17 @@ const ProfileVerification: React.FC = () => {
     copiedIcon: {
       color: colors.successColor,
       opacity: 1,
+    },
+    smallAmountRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    },
+    smallAmountLabel: {
+      fontSize: 14,
     },
   });
 
