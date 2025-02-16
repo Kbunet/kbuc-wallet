@@ -173,7 +173,15 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="bluewallet" />
+                <data android:scheme="bluewallet" android:host="otp" />
+            </intent-filter>
+
+            <!-- Intent filter for send requests -->
+            <intent-filter android:label="BlueWallet Send">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="bluewallet" android:host="send" />
             </intent-filter>
         </activity>
 
