@@ -119,6 +119,7 @@ const SendDetails = () => {
   const [changeAddress, setChangeAddress] = useState<string | null>(null);
   const [dumb, setDumb] = useState(false);
   const { isEditable } = routeParams;
+  console.log("routeParams:", routeParams);
   // if utxo is limited we use it to calculate available balance
   const balance: number = utxos ? utxos.reduce((prev, curr) => prev + curr.value, 0) : (wallet?.getBalance() ?? 0);
   const allBalance = formatBalanceWithoutSuffix(balance, BitcoinUnit.BTC, true);
@@ -126,6 +127,15 @@ const SendDetails = () => {
   const [profile, setProfile] = useState("");
   const [period, setPeriod] = useState("");
   const [owner, setOwner] = useState("");
+
+  useEffect(() => {
+    if (routeParams.profile) {
+      setProfile(routeParams.profile);
+    }
+    if (routeParams.period) {
+      setPeriod(routeParams.period);
+    }
+  }, [routeParams.profile, routeParams.period]);
 
   // if cutomFee is not set, we need to choose highest possible fee for wallet balance
   // if there are no funds for even Slow option, use 1 sat/vbyte fee
@@ -394,7 +404,7 @@ const SendDetails = () => {
     }
     console.log('profile', route.params?.profile);
     if (route.params?.profile) {
-      setProfile(route.params?.profile);
+      setProfile(routeParams?.profile);
     }
     if (route.params?.duration) {
       setPeriod(route.params?.duration);
@@ -980,7 +990,7 @@ const createTransferScript = () => {
         });
       }
     } catch (error: any) {
-      presentAlert({ title: loc.send.problem_with_psbt, message: error.message });
+      presentAlert({ title: loc.errors.error, message: error.message });
     }
     setIsLoading(false);
   };
