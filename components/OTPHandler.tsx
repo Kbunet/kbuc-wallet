@@ -42,6 +42,17 @@ const parseQueryParams = (url: string): { [key: string]: string } => {
   }
 };
 
+// Extract scheme from URL
+const extractScheme = (url: string): string => {
+  try {
+    const matches = url.match(/^([^:]+):/);
+    return matches ? matches[1] : '';
+  } catch (e) {
+    log('Error extracting scheme', e);
+    return '';
+  }
+};
+
 export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
   const { wallets, walletsInitialized } = useContext(StorageContext);
 
@@ -74,16 +85,32 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
         }
         
         // Check if this is a decrypt URL
-        if (!url.toLowerCase().startsWith('bluewallet:decrypt')) {
-          log('URL is not a decrypt URL, ignoring');
+        const isDecryptUrl = url.toLowerCase().startsWith('bluewallet:decrypt') || 
+                           url.toLowerCase().startsWith('otp://');
+        if (!isDecryptUrl) {
+          log('Not a decrypt URL:', url);
           return;
         }
 
-        log('Successfully parsed URL');
+        log('Processing decrypt URL:', url);
 
         // Parse URL parameters manually
         const params = parseQueryParams(url);
-        const encryptedOtp = params['otp'];
+        let encryptedOtp = params['otp'];
+        const callbackScheme = params['callback_scheme']; // Get callback scheme from params
+        
+        // If the URL starts with otp://, the OTP data is in the query parameter
+        if (url.toLowerCase().startsWith('otp://')) {
+          try {
+            // The OTP might be a JSON string, try to parse it
+            const otpData = JSON.parse(encryptedOtp);
+            encryptedOtp = JSON.stringify(otpData); // Re-stringify to ensure consistent format
+          } catch (e) {
+            log('Error parsing OTP data', e);
+            // If parsing fails, use the raw OTP value
+          }
+        }
+
         log('Extracted OTP parameter:', encryptedOtp ? 'Present' : 'Missing');
 
         if (!encryptedOtp) {
@@ -155,17 +182,20 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
                     }
                     log('OTP decrypted successfully');
 
-                    // Send the decrypted OTP back to the game
-                    const gameUrl = `web3game://?otp=${encodeURIComponent(decryptedOtp)}`;
-                    log('Sending decrypted OTP back to game:', gameUrl);
+                    // Use callback_scheme from URL parameters if provided, otherwise use appId
+                    const responseScheme = callbackScheme || otpData.appId || 'unknown';
+                    
+                    // Construct the response URL using the callback scheme
+                    const responseUrl = `${responseScheme}://?otp=${encodeURIComponent(decryptedOtp)}`;
+                    log('Sending decrypted OTP back to requester:', responseUrl);
                     
                     // Use Linking to open the URL
-                    const supported = await Linking.canOpenURL(gameUrl);
+                    const supported = await Linking.canOpenURL(responseUrl);
                     if (!supported) {
-                      log('URL is not supported:', gameUrl);
-                      throw new Error('Cannot open game URL');
+                      log('URL is not supported:', responseUrl);
+                      throw new Error(`App ${responseScheme} does not support ${responseScheme}:// scheme`);
                     }
-                    await Linking.openURL(gameUrl);
+                    await Linking.openURL(responseUrl);
 
                     // Show success message
                     presentAlert({

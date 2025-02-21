@@ -125,24 +125,34 @@ export const SendRequestHandler: React.FC<Props> = ({ onSendRequest }) => {
         // Handle both event object and direct URL string
         const url = typeof event === 'string' ? event : event.url;
         
+        log('Received URL:', url);
+        
         if (!url) {
+          log('URL is empty or undefined');
           return;
         }
         
         // Check if this is a send URL
         if (!url.toLowerCase().includes('bluewallet:send')) {
+          log('Not a send URL:', url);
           return;
         }
 
+        log('Processing send URL:', url);
+
         // Parse URL parameters
         const params = parseQueryParams(url);
+        log('Parsed parameters:', JSON.stringify(params));
+
         const addresses = params.addresses || [];
+        log('Extracted addresses:', JSON.stringify(addresses));
 
         if (addresses.length === 0) {
           log('No addresses provided in URL');
           return;
         }
 
+        log('Setting pending request and showing wallet select');
         // Store the pending request and show wallet selection
         setPendingRequest(addresses);
         setShowWalletSelect(true);
@@ -151,7 +161,7 @@ export const SendRequestHandler: React.FC<Props> = ({ onSendRequest }) => {
         log('Error handling URL', error);
         presentAlert({
           title: 'Error',
-          message: 'Failed to process send request',
+          message: 'Failed to process send request: ' + (error.message || 'Unknown error'),
         });
       }
     };

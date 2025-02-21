@@ -176,6 +176,13 @@
                 <data android:scheme="bluewallet" android:host="otp" />
             </intent-filter>
 
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="otp" />
+            </intent-filter>
+
             <!-- Intent filter for send requests -->
             <intent-filter android:label="BlueWallet Send">
                 <action android:name="android.intent.action.VIEW" />
@@ -193,6 +200,10 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="web3game" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="web3posts" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
