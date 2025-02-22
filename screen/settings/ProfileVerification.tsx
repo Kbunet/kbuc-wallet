@@ -46,6 +46,7 @@ interface RouteProps {
   params?: {
     scannedData?: string;
     scanTime?: number;
+    profileId?: string;
   };
 }
 
@@ -113,14 +114,15 @@ const ProfileVerification: React.FC = () => {
     triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
   };
 
-  const handleVerify = async () => {
-    if (!profileId) return;
+  const handleVerify = async (id?: string) => {
+    const profileToVerify = id || profileId;
+    if (!profileToVerify) return;
     
     setIsLoading(true);
     setError('');
     
     try {
-      const result = await BlueElectrum.verifyProfile(profileId);
+      const result = await BlueElectrum.verifyProfile(profileToVerify);
       console.log('API Response:', JSON.stringify(result, null, 2));
       
       if (result) {
@@ -143,7 +145,7 @@ const ProfileVerification: React.FC = () => {
         else if (result.ownedProfiles?.length > 0) {
           // Find the specific profile in the ownedProfiles array
           const targetProfile = result.ownedProfiles.find(
-            p => p.id.toLowerCase() === profileId.toLowerCase()
+            p => p.id.toLowerCase() === profileToVerify.toLowerCase()
           );
           
           if (targetProfile) {
@@ -161,7 +163,7 @@ const ProfileVerification: React.FC = () => {
             triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
           } else {
             console.log('Profile IDs:', {
-              searching: profileId,
+              searching: profileToVerify,
               available: result.ownedProfiles.map(p => p.id)
             });
             setError('Profile not found in owned profiles');
@@ -180,6 +182,13 @@ const ProfileVerification: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (route.params?.profileId) {
+      setProfileId(route.params.profileId);
+      handleVerify(route.params.profileId);  
+    }
+  }, [route.params?.profileId]);
 
   const importScan = async () => {
     const data = await scanQrHelper(route.name, true, undefined, true);

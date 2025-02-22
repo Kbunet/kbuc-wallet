@@ -12,6 +12,7 @@ import { navigationRef } from './NavigationService';
 import { StorageProvider } from './components/Context/StorageProvider';
 import OTPHandler from './components/OTPHandler';
 import SendRequestHandler from './components/SendRequestHandler';
+import ProfileVerificationHandler from './components/ProfileVerificationHandler';
 
 const App = () => {
   const colorScheme = useColorScheme();
@@ -24,6 +25,7 @@ const App = () => {
             <SettingsProvider>
               <OTPHandler />
               <SendRequestHandler />
+              <ProfileVerificationHandler />
               <MasterView />
             </SettingsProvider>
           </StorageProvider>
