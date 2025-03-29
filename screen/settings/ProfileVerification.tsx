@@ -316,25 +316,27 @@ const ProfileVerification: React.FC = () => {
     },
     label: {
       color: colors.alternativeTextColor,
-      opacity: 0.6,
+      opacity: 0.85,
       fontSize: 16,
+      fontWeight: '500',
     },
     value: {
       color: colors.foregroundColor,
-      fontWeight: '500',
+      fontWeight: '600',
       fontSize: 16,
     },
     errorText: {
       color: colors.failedColor,
+      fontWeight: '500',
     },
     infoIcon: {
       color: colors.alternativeTextColor,
       marginLeft: 8,
-      opacity: 0.5,
+      opacity: 0.75,
     },
     copyIcon: {
       color: colors.foregroundColor,
-      opacity: 0.6,
+      opacity: 0.8,
     },
     copiedIcon: {
       color: colors.successColor,
@@ -354,13 +356,15 @@ const ProfileVerification: React.FC = () => {
       textAlign: 'center',
     },
     verifyButtonDisabled: {
-      opacity: 0.5,
+      opacity: 0.7,
     },
     scanButton: {
       marginTop: 8,
     },
     profileCard: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.elevated,
+      borderWidth: 1,
+      borderColor: colors.formBorder,
     }
   });
 
@@ -393,7 +397,9 @@ const ProfileVerification: React.FC = () => {
       marginTop: 8,
       padding: 12,
       borderRadius: 8,
-      backgroundColor: 'rgba(255, 0, 0, 0.1)',
+      backgroundColor: `${colors.failedColor}15`,
+      borderWidth: 1,
+      borderColor: `${colors.failedColor}30`,
     },
     errorText: {
       marginLeft: 8,
@@ -435,7 +441,7 @@ const ProfileVerification: React.FC = () => {
       alignItems: 'flex-start',
       paddingVertical: 12,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+      borderBottomColor: `${colors.formBorder}50`,
       minHeight: 52,
     },
     infoRowLeft: {
@@ -478,10 +484,12 @@ const ProfileVerification: React.FC = () => {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 8,
-      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+      backgroundColor: `${colors.formBorder}15`,
     },
     smallAmountLabel: {
       fontSize: 14,
+      color: colors.foregroundColor,
+      opacity: 0.85,
     },
   });
 

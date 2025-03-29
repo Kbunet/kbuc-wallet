@@ -84,11 +84,17 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
           return;
         }
         
-        // Check if this is a decrypt URL
+        // Check if this is a decrypt URL and validate URL format
         const isDecryptUrl = url.toLowerCase().startsWith('bluewallet:decrypt') || 
                            url.toLowerCase().startsWith('otp://');
         if (!isDecryptUrl) {
           log('Not a decrypt URL:', url);
+          return;
+        }
+
+        // Validate URL has query parameters
+        if (url.indexOf('?') === -1) {
+          log('Invalid URL format - missing query parameters');
           return;
         }
 
@@ -99,15 +105,24 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
         let encryptedOtp = params['otp'];
         const callbackScheme = params['callback_scheme']; // Get callback scheme from params
         
-        // If the URL starts with otp://, the OTP data is in the query parameter
+        // If the URL starts with otp://, the OTP data in the query parameter must be present and valid
         if (url.toLowerCase().startsWith('otp://')) {
+          if (!encryptedOtp) {
+            log('Missing OTP data for otp:// URL');
+            return;
+          }
+
           try {
-            // The OTP might be a JSON string, try to parse it
+            // The OTP must be a valid JSON string
             const otpData = JSON.parse(encryptedOtp);
+            if (!otpData || typeof otpData !== 'object') {
+              log('Invalid OTP data format');
+              return;
+            }
             encryptedOtp = JSON.stringify(otpData); // Re-stringify to ensure consistent format
           } catch (e) {
             log('Error parsing OTP data', e);
-            // If parsing fails, use the raw OTP value
+            return;
           }
         }
 
@@ -128,13 +143,36 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
             .replace(/\s+/g, '')  // Remove all whitespace
             .replace(/\+/g, ' '); // Replace + with space
           
-          // Parse the OTP data
-          const otpData = JSON.parse(cleanOtpString);
+          // Validate OTP data structure
+          let otpData;
+          try {
+            otpData = JSON.parse(cleanOtpString);
+            if (!otpData || typeof otpData !== 'object') {
+              throw new Error('Invalid OTP data format');
+            }
+          } catch (e) {
+            log('Failed to parse OTP data', e);
+            presentAlert({
+              title: 'Error',
+              message: 'Invalid OTP data format',
+            });
+            return;
+          }
+
           log('OTP data structure:', Object.keys(otpData).join(', '));
           log('Target Public Key:', otpData.publicKey);
 
-          if (!otpData.ephemeralPublicKey || !otpData.iv || !otpData.encryptedMessage || !otpData.publicKey || !otpData.authTag) {
-            throw new Error('Invalid OTP data structure');
+          // Validate required OTP fields
+          const requiredFields = ['ephemeralPublicKey', 'iv', 'encryptedMessage', 'publicKey', 'authTag'];
+          const missingFields = requiredFields.filter(field => !otpData[field]);
+          
+          if (missingFields.length > 0) {
+            log(`Missing required OTP fields: ${missingFields.join(', ')}`);
+            presentAlert({
+              title: 'Error',
+              message: 'Invalid OTP data: missing required fields',
+            });
+            return;
           }
 
           // Find the target wallet based on public key
