@@ -839,15 +839,15 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('ensurance')}>
                   <View style={styles.iconContainer}>
-                    <Icon name="shield-alt" size={22} type="font-awesome-5" color={colors.buttonAlternativeTextColor} />
+                    <Icon name="trending-up" size={22} type="material" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Update Ensurance</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Increase Balance</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('releaseEnsurance')}>
                   <View style={styles.iconContainer}>
-                    <Icon name="unlock" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
+                    <Icon name="attach-money" size={22} type="material" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Release Ensurance</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Liquidate Balance</Text>
                 </TouchableOpacity>
               </View>
 

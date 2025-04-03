@@ -1765,27 +1765,6 @@ const createEnsuranceReleaseScript = (profile) => {
             />
           </View>
         }
-        {txType == 'releaseEnsurance' && <>
-              <View style={[styles.memo, stylesHook.memo]}>
-                <TextInput
-                  keyboardType="numeric"
-                  onChangeText={text => {
-                    text = text.trim();
-                    setReclaimAmount(text);
-                    setIsLoading(false);
-                  }}
-                  placeholder={"Release amount"}
-                  placeholderTextColor="#81868e"
-                  value={reclaimAmount}
-                  numberOfLines={1}
-                  style={styles.memoText}
-                  editable={!isLoading}
-                  onSubmitEditing={Keyboard.dismiss}
-                  /* @ts-ignore marcos fixme */
-                  inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
-                />
-              </View>
-        </>}
         <View style={[styles.memo, stylesHook.memo]}>
           <TextInput
             onChangeText={setTransactionMemo}
