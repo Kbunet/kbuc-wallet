@@ -553,7 +553,7 @@ const SendDetails = () => {
       } else if (!requestedSatPerByte || parseFloat(requestedSatPerByte) < 1) {
         error = loc.send.details_fee_field_is_not_valid;
         console.log('validation error');
-      } else if (["transfer", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && !transaction.address) {
+      } else if (["transfer", "reputation", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && !transaction.address) {
         error = loc.send.details_address_field_is_not_valid;
         console.log('validation error');
       } else if (balance - Number(transaction.amountSats) < 0) {
@@ -1554,7 +1554,7 @@ const createEnsuranceReleaseScript = (profile) => {
             </BlueText>
           </TouchableOpacity>
         )}
-        {["transfer", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && 
+        {["transfer", "reputation", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && 
         <AddressInput
           onChangeText={text => {
             text = text.trim();
@@ -1800,39 +1800,6 @@ const createEnsuranceReleaseScript = (profile) => {
             inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
           />
         </View>
-
-        
-        {/* <BlueSpacing20 />
-        <BlueSpacing10 />
-        <View>
-          <Picker
-            selectedValue={selectedServer}
-            onValueChange={(itemValue) => setSelectedServer(itemValue)}
-          >
-            {
-              servers?.map(s => {
-                return <Picker.Item label={`${s.host}:${s.port}`} value={s.host} />
-              })
-            }
-          </Picker>
-        </View>
-
-        <BlueSpacing10 />
-        <View>
-          <Picker
-            selectedValue={selectedDifficulty}
-            onValueChange={(itemValue) => {
-              setSelectedDifficulty(itemValue)
-              setSupportAddress(itemValue.address)
-            }}
-          >
-            {
-              difficulties?.map(d => {
-                return <Picker.Item label={`${d.amount} (~ ${d.time} seconds) `} value={d} />
-              })
-            }
-          </Picker>
-        </View> */}
         
         <BlueSpacing20 />
 

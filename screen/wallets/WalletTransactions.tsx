@@ -262,6 +262,8 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
     }
   };
 
+  const _keyExtractor = (_item: any, index: number) => index.toString();
+
   const getItemLayout = (_: any, index: number) => ({
     length: 64,
     offset: 64 * index,
@@ -304,8 +306,6 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
         presentAlert({ title: loc.errors.error, message: error.message });
       });
   };
-
-  const _keyExtractor = (_item: any, index: number) => index.toString();
 
   const pasteFromClipboard = async () => {
     onBarCodeRead({ data: await Clipboard.getString() });
@@ -739,21 +739,21 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
               <View style={styles.buttonGroup}>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('receive')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>📥</Text>
+                    <Icon name="download" size={24} type="font-awesome-5" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Receive</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Receive</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('send')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>📤</Text>
+                    <Icon name="paper-plane" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Send</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Send</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('sendrps')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>⭐</Text>
+                    <Icon name="star" size={24} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Reputation</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Reputation</Text>
                 </TouchableOpacity>
               </View>
 
@@ -762,63 +762,57 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
               <View style={styles.buttonGroup}>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('join')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>🔗</Text>
+                    <Icon name="handshake" size={20} type="font-awesome-5" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Join Pool</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Join Pool</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('leave')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>✂️</Text>
+                    <Icon name="sign-out-alt" size={24} type="font-awesome-5" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Leave Pool</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Leave Pool</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('transfer')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>🔄</Text>
+                    <Icon name="exchange-alt" size={24} type="font-awesome-5" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Transfer Ownership</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Transfer Ownership</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('reclaim')}>
                   <View style={styles.iconContainer}>
-                    {/* please use more suitable icon */}
-                    <Text style={styles.icon}>↷</Text>
+                    <Icon name="undo" size={24} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Reclaim Profile</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Reclaim Profile</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('metadata')}>
                   <View style={styles.iconContainer}>
-                    {/* please use more suitable icon */}
-                    <Text style={styles.icon}>🔄</Text>
+                    <Icon name="edit" size={24} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Update metadata</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Update metadata</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('offer')}>
                   <View style={styles.iconContainer}>
-                    {/* please use more suitable icon */}
-                    <Text style={styles.icon}>🔄</Text>
+                    <Icon name="tag" size={24} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Make an Offer</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Make an Offer</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('bid')}>
                   <View style={styles.iconContainer}>
-                    {/* please use more suitable icon */}
-                    <Text style={styles.icon}>🔄</Text>
+                    <Icon name="gavel" size={24} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Make a Bid</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Make a Bid</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('ensurance')}>
                   <View style={styles.iconContainer}>
-                    {/* please use more suitable icon */}
-                    <Text style={styles.icon}>🔄</Text>
+                    <Icon name="shield-alt" size={22} type="font-awesome-5" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Update Ensurance</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Update Ensurance</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('releaseEnsurance')}>
                   <View style={styles.iconContainer}>
-                    {/* please use more suitable icon */}
-                    <Text style={styles.icon}>🔄</Text>
+                    <Icon name="unlock" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Release Ensurance</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Release Ensurance</Text>
                 </TouchableOpacity>
               </View>
 
@@ -827,21 +821,21 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
               <View style={styles.buttonGroup}>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('getkey')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>🔑</Text>
+                    <Icon name="key" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Get Key</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Get Key</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('scan')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>📷</Text>
+                    <Icon name="qrcode" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Scan</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Scan</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('paste')}>
                   <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>📋</Text>
+                    <Icon name="paste" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: '#000000' }]}>Paste</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Paste</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -1042,7 +1036,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 15,
     fontWeight: '500',
-    color: '#000000',
   },
   buttonPanel: {
     backgroundColor: 'white',
