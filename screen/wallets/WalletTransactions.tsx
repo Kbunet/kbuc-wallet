@@ -525,6 +525,21 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
       case 'reclaim':
         sendButtonPress('reclaim');
         break;
+      case 'metadata':
+        sendButtonPress('metadata');
+        break;
+      case 'bid':
+        sendButtonPress('bid');
+        break;
+      case 'offer':
+        sendButtonPress('offer');
+        break;
+      case 'ensurance':
+        sendButtonPress('ensurance');
+        break;
+      case 'releaseEnsurance':
+        sendButtonPress('releaseEnsurance');
+        break;
       case 'getkey':
         handleGetKeyPress();
         break;
@@ -769,6 +784,41 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
                     <Text style={styles.icon}>↷</Text>
                   </View>
                   <Text style={[styles.buttonText, { color: '#000000' }]}>Reclaim Profile</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('metadata')}>
+                  <View style={styles.iconContainer}>
+                    {/* please use more suitable icon */}
+                    <Text style={styles.icon}>🔄</Text>
+                  </View>
+                  <Text style={[styles.buttonText, { color: '#000000' }]}>Update metadata</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('offer')}>
+                  <View style={styles.iconContainer}>
+                    {/* please use more suitable icon */}
+                    <Text style={styles.icon}>🔄</Text>
+                  </View>
+                  <Text style={[styles.buttonText, { color: '#000000' }]}>Make an Offer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('bid')}>
+                  <View style={styles.iconContainer}>
+                    {/* please use more suitable icon */}
+                    <Text style={styles.icon}>🔄</Text>
+                  </View>
+                  <Text style={[styles.buttonText, { color: '#000000' }]}>Make a Bid</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('ensurance')}>
+                  <View style={styles.iconContainer}>
+                    {/* please use more suitable icon */}
+                    <Text style={styles.icon}>🔄</Text>
+                  </View>
+                  <Text style={[styles.buttonText, { color: '#000000' }]}>Update Ensurance</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('releaseEnsurance')}>
+                  <View style={styles.iconContainer}>
+                    {/* please use more suitable icon */}
+                    <Text style={styles.icon}>🔄</Text>
+                  </View>
+                  <Text style={[styles.buttonText, { color: '#000000' }]}>Release Ensurance</Text>
                 </TouchableOpacity>
               </View>
 

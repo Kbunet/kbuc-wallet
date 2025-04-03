@@ -127,6 +127,12 @@ const SendDetails = () => {
   const [profile, setProfile] = useState("");
   const [period, setPeriod] = useState("");
   const [owner, setOwner] = useState("");
+  const [metaName, setMetaName] = useState("");
+  const [metaLink, setMetaLink] = useState("");
+  const [metaAppData, setMetaAppData] = useState("");
+  const [bidHeight, setBidHeight] = useState("");
+  const [bidAmount, setBidAmount] = useState("");
+  const [reclaimAmount, setReclaimAmount] = useState("");
 
   useEffect(() => {
     if (routeParams.profile) {
@@ -547,7 +553,7 @@ const SendDetails = () => {
       } else if (!requestedSatPerByte || parseFloat(requestedSatPerByte) < 1) {
         error = loc.send.details_fee_field_is_not_valid;
         console.log('validation error');
-      } else if (!transaction.address) {
+      } else if (["transfer", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && !transaction.address) {
         error = loc.send.details_address_field_is_not_valid;
         console.log('validation error');
       } else if (balance - Number(transaction.amountSats) < 0) {
@@ -620,6 +626,10 @@ const SendDetails = () => {
     OP_CANDIDATELEAVE: 196,
     OP_TRANSFER: 204,
     OP_CLAIM: 203,
+    OP_META: 205,
+    OP_STAKE: 206,
+    OP_BID: 207,
+    OP_BID_RECLAIM: 208
   };
   
     
@@ -670,6 +680,69 @@ const createReclaimScript = (profile: string) => {
   return script;
 }
 
+const createMetadataScript = (profile: string) => {
+  console.log("profile:", profile);
+  // Ensure content is a Buffer
+  const profileBuffer = Buffer.from(profile, 'hex');
+  const nameBuffer = Buffer.from(metaName);
+  const linkBuffer = Buffer.from(metaLink);
+  const appDataBuffer = Buffer.from(metaAppData, 'hex');
+
+  const dataArray = [OPS.OP_META, profileBuffer];
+
+  if (metaName.length && !metaLink.length && !metaAppData.length) {
+    // only name was provided
+    dataArray.push(Buffer.from("name"));
+    dataArray.push(nameBuffer);
+  } else if (metaName.length && metaLink.length && !metaAppData.length) {
+    // only name and link were provided
+    dataArray.push(Buffer.from("name"));
+    dataArray.push(nameBuffer);
+    dataArray.push(linkBuffer);
+  } else if (metaLink.length && !metaName.length && !metaAppData.length) {
+    // only link was provided
+    dataArray.push(Buffer.from("link"));
+    dataArray.push(nameBuffer);
+    dataArray.push(linkBuffer);
+  } else if (metaAppData.length && !metaName.length && !metaLink.length) {
+    // only application data was provided
+    dataArray.push(Buffer.from("appdata"));
+    dataArray.push(appDataBuffer);
+  } else if (metaAppData.length && metaName.length && metaLink.length) {
+    // all fields were provided
+    dataArray.push(Buffer.from("all"));
+    dataArray.push(nameBuffer);
+    dataArray.push(linkBuffer);
+    dataArray.push(appDataBuffer);
+  }
+  // Compile the script
+  const script = bitcoin.script.compile(dataArray);
+  console.log("script:", script.toString('hex'));
+
+  return script;
+}
+
+const createBidScript = (profile: string) => {
+  console.log("profile:", profile);
+  console.log("Bid amount as big int:", BigNumber(bidAmount).toNumber());
+  // Ensure content is a Buffer
+  const profileBuffer = Buffer.from(profile, 'hex');
+
+  const scriptData = [OPS.OP_BID, profileBuffer];
+  const encodedAmount = Buffer.alloc(8);
+  encodedAmount.writeBigUInt64LE(BigInt(bidAmount), 0); // Minimal encoding (little-endian)
+  scriptData.push(encodedAmount);
+  // scriptData.push(bitcoin.script.number.encode(BigNumber(bidAmount).toNumber()));
+  if (period && parseInt(period) > 0) {
+    scriptData.push(bitcoin.script.number.encode(parseInt(period)));
+  }
+  // Compile the script
+  const script = bitcoin.script.compile(scriptData);
+  console.log("script:", script.toString('hex'));
+
+  return script;
+}
+
 const createTransferScript = () => {
    // Ensure content is a Buffer
   const profileIDBuffer = Buffer.from(profile, 'hex');
@@ -688,6 +761,26 @@ const createTransferScript = () => {
   const script = bitcoin.script.compile(scriptData);
 
   console.log("Ownership transfer script:", script.toString('hex'));
+  return script;
+}
+
+const createStakeScript = () => {
+  const script = bitcoin.script.compile([
+    OPS.OP_STAKE
+  ]);
+
+  return script;
+}
+
+const createEnsuranceReleaseScript = (profile) => {
+  const encodedAmount = Buffer.alloc(8);
+  encodedAmount.writeBigUInt64LE(BigInt(reclaimAmount), 0); // Minimal encoding (little-endian)
+  const script = bitcoin.script.compile([
+    OPS.OP_BID_RECLAIM,
+    encodedAmount,
+    Buffer.from(profile, 'hex')
+  ]);
+
   return script;
 }
 
@@ -727,6 +820,14 @@ const createTransferScript = () => {
           targets.push({ value, script: {hex: createTransferScript().toString('hex')} });
         } else if (txType == 'reclaim') {
           targets.push({ value, script: {hex: createReclaimScript(transaction.address).toString('hex')} });
+        } else if (txType == 'metadata') {
+          targets.push({ value, script: {hex: createMetadataScript(transaction.address).toString('hex')} });
+        } else if (txType == 'bid') {
+          targets.push({ value, script: {hex: createBidScript(transaction.address).toString('hex')} });
+        } else if (txType == 'ensurance') {
+          targets.push({ value, script: {hex: createStakeScript().toString('hex')} });
+        } else if (txType == 'releaseEnsurance') {
+          targets.push({ value, script: {hex: createEnsuranceReleaseScript(transaction.address).toString('hex')} });
         }
       } else if (transaction.amount) {
         if (btcToSatoshi(transaction.amount) > 0) {
@@ -742,6 +843,14 @@ const createTransferScript = () => {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createTransferScript().toString('hex')} });
           } else if (txType == 'reclaim') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createReclaimScript(transaction.address).toString('hex')} });
+          } else if (txType == 'metadata') {
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createMetadataScript(transaction.address).toString('hex')} });
+          } else if (txType == 'bid') {
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createBidScript(transaction.address).toString('hex')} });
+          } else if (txType == 'ensurance') {
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createStakeScript().toString('hex')} });
+          } else if (txType == 'releaseEnsurance') {
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createEnsuranceReleaseScript(transaction.address).toString('hex')} });
           }
         }
       }
@@ -753,7 +862,17 @@ const createTransferScript = () => {
     // preserving original since it will be mutated
 
     // without forcing `HDSegwitBech32Wallet` i had a weird ts error, complaining about last argument (fp)
-    const { tx, outputs, psbt, fee } = (wallet as HDSegwitBech32Wallet)?.createTransaction(
+    
+    const { tx, outputs, psbt, fee } = txType == 'releaseEnsurance' ? (wallet as HDSegwitBech32Wallet)?.createUnstakingTransaction(
+      lutxo,
+      targets,
+      requestedSatPerByte,
+      change,
+      isTransactionReplaceable ? HDSegwitBech32Wallet.defaultRBFSequence : HDSegwitBech32Wallet.finalRBFSequence,
+      false,
+      0,
+      txType
+    ) :  (wallet as HDSegwitBech32Wallet)?.createTransaction(
       lutxo,
       targets,
       requestedSatPerByte,
@@ -1435,7 +1554,7 @@ const createTransferScript = () => {
             </BlueText>
           </TouchableOpacity>
         )}
-
+        {["transfer", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && 
         <AddressInput
           onChangeText={text => {
             text = text.trim();
@@ -1459,7 +1578,7 @@ const createTransferScript = () => {
           inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
           launchedBy={name}
           editable={isEditable}
-        />
+        />}
         {addresses.length > 1 && (
           <Text style={[styles.of, stylesHook.of]}>{loc.formatString(loc._.of, { number: index + 1, total: addresses.length })}</Text>
         )}
@@ -1484,34 +1603,6 @@ const createTransferScript = () => {
   const [port, setPort] = useState<number | undefined>();
   const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
 
-  
-  // const loadSupportServerFromStorage = async () => {
-  //   const serversStr = await AsyncStorage.getItem("support_servers");
-  //   if (serversStr) {
-  //     const supportServers : SupportServerType[] =  JSON.parse(serversStr);
-  //     setServers(supportServers);
-  //     if (supportServers && supportServers.length) {
-  //       setSelectedServer(supportServers[0] || undefined);
-  //       setDifficulties(supportServers[0].difficulties || []);
-  //       // setSupportAddress(supportServers[0].difficulties[0]?.address || "");
-  //       setSupportAddress("bc1qqrnjlpwyj9ccyk584pq5900syq32w4re2tsmh2");
-  //       setSupportReward(supportServers[0].difficulties[0]?.amount || 0);
-  //     }
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   loadSupportServerFromStorage();
-  // }, []);
-
-  // useEffect(() => {
-  //   setSupportAddress(selectedDifficulty?.address);
-  //   setSupportReward(selectedDifficulty?.amount);
-
-  //   console.log("selectedDifficulty", selectedDifficulty);
-  // }, [selectedDifficulty]);
-  
-
   return (
     <View style={[styles.root, stylesHook.root]} onLayout={e => setWidth(e.nativeEvent.layout.width)}>
       <View>
@@ -1532,17 +1623,57 @@ const createTransferScript = () => {
           contentContainerStyle={styles.scrollViewContent}
           getItemLayout={getItemLayout}
         />
-        {txType == 'ownership' && <>
+          {txType == 'ownership' && <>
+              <View style={[styles.memo, stylesHook.memo]}>
+                <TextInput
+                  onChangeText={text => {
+                    text = text.trim();
+                    setProfile(text);
+                    setIsLoading(false);
+                  }}
+                  placeholder={loc.send.details_profile_id}
+                  placeholderTextColor="#81868e"
+                  value={profile}
+                  numberOfLines={1}
+                  style={styles.memoText}
+                  editable={!isLoading}
+                  onSubmitEditing={Keyboard.dismiss}
+                  /* @ts-ignore marcos fixme */
+                  inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+                />
+              </View>
+              <View style={[styles.memo, stylesHook.memo]}>
+                <TextInput
+                  keyboardType="numeric"
+                  onChangeText={text => {
+                    text = text.trim();
+                    setPeriod(text);
+                    setIsLoading(false);
+                  }}
+                  placeholder={loc.send.details_period}
+                  placeholderTextColor="#81868e"
+                  value={period}
+                  numberOfLines={1}
+                  style={styles.memoText}
+                  editable={!isLoading}
+                  onSubmitEditing={Keyboard.dismiss}
+                  /* @ts-ignore marcos fixme */
+                  inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+                />
+              </View>
+          </>}
+          {txType == 'metadata' && <>
+            {/* Name */}
             <View style={[styles.memo, stylesHook.memo]}>
               <TextInput
                 onChangeText={text => {
                   text = text.trim();
-                  setProfile(text);
+                  setMetaName(text);
                   setIsLoading(false);
                 }}
-                placeholder={loc.send.details_profile_id}
+                placeholder={loc.send.details_profile_name}
                 placeholderTextColor="#81868e"
-                value={profile}
+                value={metaName}
                 numberOfLines={1}
                 style={styles.memoText}
                 editable={!isLoading}
@@ -1551,17 +1682,17 @@ const createTransferScript = () => {
                 inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
               />
             </View>
+            {/* Link */}
             <View style={[styles.memo, stylesHook.memo]}>
               <TextInput
-                keyboardType="numeric"
                 onChangeText={text => {
                   text = text.trim();
-                  setPeriod(text);
+                  setMetaLink(text);
                   setIsLoading(false);
                 }}
-                placeholder={loc.send.details_period}
+                placeholder={loc.send.details_profile_link}
                 placeholderTextColor="#81868e"
-                value={period}
+                value={metaLink}
                 numberOfLines={1}
                 style={styles.memoText}
                 editable={!isLoading}
@@ -1570,8 +1701,91 @@ const createTransferScript = () => {
                 inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
               />
             </View>
-          </>
+            {/* App Data */}
+            <View style={[styles.memo, stylesHook.memo]}>
+              <TextInput
+                onChangeText={text => {
+                  text = text.trim();
+                  setMetaAppData(text);
+                  setIsLoading(false);
+                }}
+                placeholder={loc.send.details_profile_app_data}
+                placeholderTextColor="#81868e"
+                value={metaAppData}
+                numberOfLines={1}
+                style={styles.memoText}
+                editable={!isLoading}
+                onSubmitEditing={Keyboard.dismiss}
+                /* @ts-ignore marcos fixme */
+                inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+              />
+            </View>
+          </>}
+        {/* Bid Amount */}
+        {["bid", "offer"].includes(txType) &&
+          <View style={[styles.memo, stylesHook.memo]}>
+            <TextInput
+              keyboardType="numeric"
+              onChangeText={text => {
+                text = text.trim();
+                setBidAmount(text);
+                setIsLoading(false);
+              }}
+              placeholder={txType == 'bid' ? loc.send.details_bid_amount : loc.send.details_offer_amount}
+              placeholderTextColor="#81868e"
+              value={bidAmount}
+              numberOfLines={1}
+              style={styles.memoText}
+              editable={!isLoading}
+              onSubmitEditing={Keyboard.dismiss}
+              /* @ts-ignore marcos fixme */
+              inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+            />
+          </View>
         }
+        {/* Auction Period */}
+        {txType == 'offer' &&
+          <View style={[styles.memo, stylesHook.memo]}>
+            <TextInput
+              keyboardType="numeric"
+              onChangeText={text => {
+                text = text.trim();
+                setPeriod(text);
+                setIsLoading(false);
+              }}
+              placeholder={loc.send.auction_period}
+              placeholderTextColor="#81868e"
+              value={period}
+              numberOfLines={1}
+              style={styles.memoText}
+              editable={!isLoading}
+              onSubmitEditing={Keyboard.dismiss}
+              /* @ts-ignore marcos fixme */
+              inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+            />
+          </View>
+        }
+        {txType == 'releaseEnsurance' && <>
+              <View style={[styles.memo, stylesHook.memo]}>
+                <TextInput
+                  keyboardType="numeric"
+                  onChangeText={text => {
+                    text = text.trim();
+                    setReclaimAmount(text);
+                    setIsLoading(false);
+                  }}
+                  placeholder={"Release amount"}
+                  placeholderTextColor="#81868e"
+                  value={reclaimAmount}
+                  numberOfLines={1}
+                  style={styles.memoText}
+                  editable={!isLoading}
+                  onSubmitEditing={Keyboard.dismiss}
+                  /* @ts-ignore marcos fixme */
+                  inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+                />
+              </View>
+        </>}
         <View style={[styles.memo, stylesHook.memo]}>
           <TextInput
             onChangeText={setTransactionMemo}

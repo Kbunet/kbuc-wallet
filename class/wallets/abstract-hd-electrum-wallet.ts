@@ -19,6 +19,8 @@ import { AbstractHDWallet } from './abstract-hd-wallet';
 import { CreateTransactionResult, CreateTransactionTarget, CreateTransactionUtxo, Transaction, Utxo } from './types';
 import { SilentPayment, UTXOType as SPUTXOType, UTXO as SPUTXO } from 'silent-payments';
 
+import CustomPsbt from '../../custom/psbt';
+
 const ECPair = ECPairFactory(ecc);
 const bip32 = BIP32Factory(ecc);
 const bip47 = BIP47Factory(ecc);
@@ -1301,6 +1303,67 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
     if (!skipSigning) {
       tx = psbt.finalizeAllInputs().extractTransaction();
     }
+    return { tx, inputs, outputs, fee, psbt };
+  }
+
+  
+  createUnstakingTransaction(
+    utxos: CreateTransactionUtxo[],
+    targets: CoinSelectTarget[],
+    feeRate: number,
+    changeAddress: string,
+    sequence: number,
+    skipSigning = false,
+    masterFingerprint: number,
+    txType: string,
+  ): CreateTransactionResult {
+    if (targets.length === 0) throw new Error('No destination provided');
+    // compensating for coinselect inability to deal with segwit inputs, and overriding script length for proper vbytes calculation
+    for (const u of utxos) {
+      u.script = { length: 27 };
+    }
+    
+    console.log("AbstractHDElectrumWallet txType:", txType);
+    const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate);
+    console.log("bech31 outputs:", outputs);
+    console.log("bech31 fee:", fee);
+    console.log("bech31 feeRate:", feeRate);
+    sequence = sequence || 0xffffffff; // disable RBF by default
+    const psbt = new CustomPsbt();
+    const keyPair = ECPair.fromWIF(this.secret);
+    const pubkey = keyPair.publicKey;
+
+    
+    // 🔹 Generate the Special TXID (zeros + hash160)
+    const hash160 = bitcoin.crypto.ripemd160(bitcoin.crypto.sha256(pubkey));
+    const specialTxid = Buffer.concat([Buffer.alloc(12, 0), hash160]); // 12 bytes of 0s + hash160
+    console.log("Special TXID:", specialTxid.toString('hex'));
+    // 🔹 Define the unstaking input
+    const unstakingInput = {
+      hash: specialTxid.toString('hex'), // TXID (special format)
+      index: 0, // Output index
+      witnessUtxo: {
+          script: Buffer.from('0014' + hash160.toString('hex'), 'hex'), // P2WPKH script
+          value: targets[0].value, // Amount (in satoshis)
+      }
+    };
+    // Add special unstaking input
+    psbt.addInput(unstakingInput);
+    
+    
+    // 🔹 Define the unstaking output (P2WPKH for issuer)
+    const issuerAddress = bitcoin.payments.p2wpkh({ pubkey }).address;
+    console.log("Issuer P2WPKH Address:", issuerAddress);
+    // Add output (issuer's P2WPKH)
+    psbt.addOutput({
+      address: issuerAddress,
+      value: targets[0].value - fee, // Deducting a small fee
+    });
+
+    // Sign the transaction
+    psbt.signAllInputs(keyPair);
+    psbt.finalizeAllInputs();
+    const tx = psbt.extractTransaction();
     return { tx, inputs, outputs, fee, psbt };
   }
 

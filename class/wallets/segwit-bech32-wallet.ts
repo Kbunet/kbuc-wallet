@@ -244,6 +244,85 @@ export class SegwitBech32Wallet extends LegacyWallet {
     return { tx, inputs, outputs, fee, psbt };
   }
 
+  
+  createUnstakingTransaction(
+    utxos: CreateTransactionUtxo[],
+    targets: CoinSelectTarget[],
+    feeRate: number,
+    changeAddress: string,
+    sequence: number,
+    skipSigning = false,
+    masterFingerprint: number,
+    txType: string,
+  ): CreateTransactionResult {
+    if (targets.length === 0) throw new Error('No destination provided');
+    // compensating for coinselect inability to deal with segwit inputs, and overriding script length for proper vbytes calculation
+    for (const u of utxos) {
+      u.script = { length: 27 };
+    }
+    
+    console.log("bech31 txType:", txType);
+    const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate);
+    console.log("bech31 outputs:", outputs);
+    console.log("bech31 fee:", fee);
+    console.log("bech31 feeRate:", feeRate);
+    sequence = sequence || 0xffffffff; // disable RBF by default
+    const psbt = new CustomPsbt();
+    const keyPair = ECPair.fromWIF(this.secret);
+    const pubkey = keyPair.publicKey;
+
+    
+    // 🔹 Generate the Special TXID (zeros + hash160)
+    const hash160 = bitcoin.crypto.ripemd160(bitcoin.crypto.sha256(pubkey));
+    const specialTxid = Buffer.concat([Buffer.alloc(12, 0), hash160]); // 12 bytes of 0s + hash160
+    // const specialTxid = Buffer.alloc(32, 0); // 12 bytes of 0s + hash160
+    console.log("Special TXID:", specialTxid.toString('hex'));
+    // 🔹 Define the unstaking input
+    const unstakingInput = {
+      hash: specialTxid.toString('hex'), // TXID (special format)
+      index: 0, // Output index
+      sequence,
+      witnessUtxo: {
+          script: Buffer.from('0014' + hash160.toString('hex'), 'hex'), // P2WPKH script
+          value: targets[0].value, // Amount (in satoshis)
+      }
+    };
+    // Add special unstaking input
+    psbt.addInput(unstakingInput);
+    
+    
+    // 🔹 Define the unstaking output (P2WPKH for issuer)
+    const p2wpkh = bitcoin.payments.p2wpkh({ pubkey });
+    console.log("Issuer P2WPKH Address:", p2wpkh.address);
+    // Add output (issuer's P2WPKH)
+    psbt.addOutput({
+      address: p2wpkh.address,
+      value: targets[0].value - (psbt.toBuffer().byteLength * feeRate), // Deducting a small fee
+      // script: p2wpkh.output,
+    });
+
+    // Sign the transaction
+    // console.log("Sigining the transaction");
+    // psbt.signAllInputs(keyPair);
+    console.log("Finalizing the transaction");
+    psbt.finalizeInput(0, (inputIndex, input) => {
+      return {
+        hash: specialTxid.toString('hex'), // TXID (special format)
+        index: 0, // Output index
+        sequence,
+        finalScriptSig: bitcoin.script.compile([
+          bitcoin.script.number.encode(680000), // Example custom script
+          bitcoin.opcodes.OP_0
+        ])
+      };
+    });
+    // psbt.finalizeAllInputs();
+    console.log("Extracting the transaction");
+    const tx = psbt.extractTransaction();
+    console.log("Unstake tx: ", tx.toHex());
+    return { tx, inputs, outputs, fee, psbt };
+  }
+
   allowSend() {
     return true;
   }
