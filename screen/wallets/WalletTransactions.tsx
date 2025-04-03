@@ -55,6 +55,7 @@ import { BlueSpacing10 } from '../../BlueComponents';
 import { Image } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { useWindowDimensions } from 'react-native';
+import * as crypto from '../../custom/crypto';
 
 const buttonFontSize =
   PixelRatio.roundToNearestPixel(Dimensions.get('window').width / 26) > 22
@@ -600,25 +601,59 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
       const publicKey = wallet.getPubKey();
       if (publicKey) {
         setWalletPubKey(publicKey);
+        setShowPubKeyHash(false); // Reset to show public key by default
       }
     }
     setIsKeyModalVisible(true);
     toggleButtonPanel();
   };
 
-  const handleCopyPublicKey = async () => {
-    if (walletPubKey) {
-      await Clipboard.setString(walletPubKey);
-      triggerHapticFeedback(HapticFeedbackTypes.Selection);
-      setWalletPubKey('Copied to clipboard'); // Temporary feedback
-      setTimeout(() => {
-        setWalletPubKey(walletPubKey || '');
-      }, 1000);
+  const [walletPubKey, setWalletPubKey] = useState("");
+  const [isKeyModalVisible, setIsKeyModalVisible] = useState(false);
+  const [showPubKeyHash, setShowPubKeyHash] = useState(false); // New state to toggle between pubkey and hash160
+  const [hasCopiedText, setHasCopiedText] = useState(false);
+  const [displayedText, setDisplayedText] = useState("");
+
+  const toggleKeyDisplay = () => {
+    if (wallet && walletPubKey) {
+      setShowPubKeyHash(!showPubKeyHash);
     }
   };
 
-  const [walletPubKey, setWalletPubKey] = useState("");
-  const [isKeyModalVisible, setIsKeyModalVisible] = useState(false);
+  const getDisplayValue = () => {
+    if (!walletPubKey) return '';
+    
+    if (showPubKeyHash) {
+      try {
+        // Convert hex string to buffer for hash160
+        const buffer = Buffer.from(walletPubKey, 'hex');
+        const hash = crypto.hash160(buffer);
+        return hash.toString('hex');
+      } catch (error) {
+        console.log('Error calculating hash160:', error);
+        return 'Error calculating hash';
+      }
+    } else {
+      return walletPubKey;
+    }
+  };
+
+  const handleCopyPublicKey = async () => {
+    const valueToCopy = getDisplayValue();
+    if (valueToCopy) {
+      setHasCopiedText(true);
+      await Clipboard.setString(valueToCopy);
+      triggerHapticFeedback(HapticFeedbackTypes.Selection);
+      
+      const currentText = displayedText || valueToCopy;
+      setDisplayedText(loc.wallets.xpub_copiedToClipboard);
+      
+      setTimeout(() => {
+        setHasCopiedText(false);
+        setDisplayedText(currentText);
+      }, 1000);
+    }
+  };
 
   return (
     <View style={styles.flex}>
@@ -821,9 +856,9 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
               <View style={styles.buttonGroup}>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('getkey')}>
                   <View style={styles.iconContainer}>
-                    <Icon name="key" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
+                    <Icon name="id-card" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
-                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Get Key</Text>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Get ID</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('scan')}>
                   <View style={styles.iconContainer}>
@@ -947,34 +982,40 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Public Key</Text>
+            <Text style={styles.modalTitle}>Your Wallet ID</Text>
             
-            <View style={styles.qrContainer}>
-              {walletPubKey != '' && (
-                <QRCodeComponent
-                  value={walletPubKey}
-                  size={250}
-                  isLogoRendered={true}
-                  ecl="H"
-                />
-              )}
-            </View>
+            <QRCodeComponent 
+              value={getDisplayValue()} 
+              size={250} 
+              isLogoRendered={true}
+              ecl="H"
+            />
 
             <View style={styles.keyText}>
-              <Text style={styles.keyLabel}>Key:</Text>
-              <Text style={styles.keyValue} numberOfLines={2} ellipsizeMode="middle">
-                {walletPubKey}
-              </Text>
+              <Text style={styles.keyLabel}>ID:</Text>
+              <TouchableOpacity
+                onPress={handleCopyPublicKey}
+                disabled={hasCopiedText}
+                style={styles.copyTouchable}
+                testID="CopyIDText"
+              >
+                <Text 
+                  style={styles.keyValue} 
+                  numberOfLines={2} 
+                  ellipsizeMode="middle"
+                >
+                  {hasCopiedText ? loc.wallets.xpub_copiedToClipboard : getDisplayValue()}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.copyButton]}
-                onPress={handleCopyPublicKey}
+                style={[styles.modalButton, styles.hashButton]}
+                onPress={toggleKeyDisplay}
               >
-                <Text style={styles.modalButtonText}>Copy</Text>
+                <Text style={styles.modalButtonText}>{showPubKeyHash ? 'Show Full ID' : 'Show Your ID'}</Text>
               </TouchableOpacity>
-              
               <TouchableOpacity
                 style={[styles.modalButton, styles.closeButton]}
                 onPress={() => setIsKeyModalVisible(false)}
@@ -1165,7 +1206,8 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    width: '100%',
+    marginTop: 20,
   },
   decryptButton: {
     backgroundColor: '#34C759', // Green color for decrypt
@@ -1199,5 +1241,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     padding: 8,
     borderRadius: 4,
+  },
+  hashButton: {
+    backgroundColor: '#4CAF50',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  copyTouchable: {
+    maxWidth: '80%',
   },
 });
