@@ -87,8 +87,9 @@ const SendDetails = () => {
   const setParams = navigation.setParams;
   const route = useRoute<RouteProps>();
   const name = route.name;
-  const feeUnit = route.params?.feeUnit ?? BitcoinUnit.BTC;
-  const amountUnit = route.params?.amountUnit ?? BitcoinUnit.BTC;
+  const feeUnit = route.params?.feeUnit && route.params?.feeUnit === BitcoinUnit.BTC ? BitcoinUnit.KBUC : (route.params?.feeUnit ?? BitcoinUnit.KBUC);
+  const amountUnit = route.params?.amountUnit && route.params?.amountUnit === BitcoinUnit.BTC ? BitcoinUnit.KBUC : (route.params?.amountUnit ?? BitcoinUnit.KBUC);
+  console.log("SendDetails:", amountUnit);
   const frozenBalance = route.params?.frozenBalance ?? 0;
   const transactionMemo = route.params?.transactionMemo;
   const utxos = route.params?.utxos;
@@ -1387,7 +1388,7 @@ const createEnsuranceReleaseScript = (profile) => {
           return [...addrs];
         });
         setUnits(u => {
-          u[scrollIndex.current] = BitcoinUnit.BTC;
+          u[scrollIndex.current] = BitcoinUnit.KBUC;
           return [...u];
         });
       }
@@ -1510,6 +1511,9 @@ const createEnsuranceReleaseScript = (profile) => {
                 case BitcoinUnit.BTC:
                   addr.amountSats = btcToSatoshi(String(addr.amount));
                   break;
+                case BitcoinUnit.KBUC:
+                  addr.amountSats = btcToSatoshi(String(addr.amount));
+                  break;
                 case BitcoinUnit.LOCAL_CURRENCY:
                   // also accounting for cached fiat->sat conversion to avoid rounding error
                   addr.amountSats = AmountInput.getCachedSatoshis(addr.amount) || btcToSatoshi(fiatToBTC(Number(addr.amount)));
@@ -1529,6 +1533,9 @@ const createEnsuranceReleaseScript = (profile) => {
               item.amount = text;
               switch (units[index] || amountUnit) {
                 case BitcoinUnit.BTC:
+                  item.amountSats = btcToSatoshi(item.amount);
+                  break;
+                case BitcoinUnit.KBUC:
                   item.amountSats = btcToSatoshi(item.amount);
                   break;
                 case BitcoinUnit.LOCAL_CURRENCY:

@@ -26,11 +26,13 @@ const TransactionsNavigationHeader: React.FC<TransactionsNavigationHeaderProps> 
   onWalletUnitChange,
   onManageFundsPressed,
   onWalletBalanceVisibilityChange,
-  unit = BitcoinUnit.BTC,
+  unit = BitcoinUnit.KBUC,
 }) => {
   const [wallet, setWallet] = useState(initialWallet);
   const [allowOnchainAddress, setAllowOnchainAddress] = useState(false);
   const { preferredFiatCurrency } = useSettings();
+
+  console.log("TransactionsNavigationHeader:", unit);
 
   const verifyIfWalletAllowsOnchainAddress = useCallback(() => {
     if (wallet.type === LightningCustodianWallet.type) {
@@ -66,12 +68,12 @@ const TransactionsNavigationHeader: React.FC<TransactionsNavigationHeaderProps> 
   const changeWalletBalanceUnit = () => {
     let newWalletPreferredUnit = wallet.getPreferredBalanceUnit();
 
-    if (newWalletPreferredUnit === BitcoinUnit.BTC) {
+    if (newWalletPreferredUnit === BitcoinUnit.KBUC || newWalletPreferredUnit === BitcoinUnit.BTC) {
       newWalletPreferredUnit = BitcoinUnit.SATS;
     } else if (newWalletPreferredUnit === BitcoinUnit.SATS) {
       newWalletPreferredUnit = BitcoinUnit.LOCAL_CURRENCY;
     } else {
-      newWalletPreferredUnit = BitcoinUnit.BTC;
+      newWalletPreferredUnit = BitcoinUnit.KBUC;
     }
 
     onWalletUnitChange(newWalletPreferredUnit);
@@ -208,7 +210,7 @@ const TransactionsNavigationHeader: React.FC<TransactionsNavigationHeaderProps> 
         </ToolTipMenu>
         <TouchableOpacity style={styles.walletPreferredUnitView} onPress={changeWalletBalanceUnit}>
           <Text style={styles.walletPreferredUnitText}>
-            {unit === BitcoinUnit.LOCAL_CURRENCY ? (preferredFiatCurrency?.endPointKey ?? FiatUnit.USD) : unit}
+            {unit === BitcoinUnit.LOCAL_CURRENCY ? (preferredFiatCurrency?.endPointKey ?? FiatUnit.USD) : (unit === BitcoinUnit.BTC? BitcoinUnit.KBUC : unit)}
           </Text>
         </TouchableOpacity>
       </View>

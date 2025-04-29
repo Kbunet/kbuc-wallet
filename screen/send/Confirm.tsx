@@ -75,9 +75,9 @@ const Confirm: React.FC = () => {
   const navigation = useExtendedNavigation<ConfirmNavigationProp>();
   const route = useRoute<ConfirmRouteProp>(); // Get the route and its params
   const { recipients, targets, walletID, fee, memo, tx, satoshiPerByte, psbt, payjoinUrl, supportRewardAddress, supportRewardAmount, txType } = route.params; // Destructure params
-  console.log("supportRewardAddress", supportRewardAddress);
-  console.log("supportRewardAmount", supportRewardAmount);
-  console.log(tx);
+  // console.log("supportRewardAddress", supportRewardAddress);
+  // console.log("supportRewardAmount", supportRewardAmount);
+  // console.log(tx);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { navigate, setOptions, goBack } = navigation;
   const wallet = wallets.find((w: TWallet) => w.getID() === walletID) as TWallet;
@@ -447,7 +447,7 @@ const Confirm: React.FC = () => {
           <Text testID="TransactionValue" style={[styles.valueValue, stylesHook.valueValue]}>
             {item.value && satoshiToBTC(item.value)}
           </Text>
-          <Text style={[styles.valueUnit, stylesHook.valueValue]}>{' ' + loc.units[BitcoinUnit.BTC]}</Text>
+          <Text style={[styles.valueUnit, stylesHook.valueValue]}>{' ' + loc.units[BitcoinUnit.KBUC]}</Text>
         </View>
         <Text style={[styles.transactionAmountFiat, stylesHook.transactionAmountFiat]}>
           {item.value && satoshiToLocalCurrency(item.value)}

@@ -315,11 +315,11 @@ export const removeTrailingZeros = (value: number | string): string => {
  */
 export function formatBalance(balance: number, toUnit: string, withFormatting = false): string {
   if (toUnit === undefined) {
-    return balance + ' ' + loc.units[BitcoinUnit.BTC];
+    return balance + ' ' + loc.units[BitcoinUnit.KBUC];
   }
-  if (toUnit === BitcoinUnit.BTC) {
+  if (toUnit === BitcoinUnit.KBUC || toUnit === BitcoinUnit.BTC) {
     const value = new BigNumber(balance).dividedBy(100000000).toFixed(8);
-    return removeTrailingZeros(+value) + ' ' + loc.units[BitcoinUnit.BTC];
+    return removeTrailingZeros(+value) + ' ' + loc.units[BitcoinUnit.KBUC];
   } else if (toUnit === BitcoinUnit.SATS) {
     return (withFormatting ? new Intl.NumberFormat().format(balance).toString() : String(balance)) + ' ' + loc.units[BitcoinUnit.SATS];
   } else {
@@ -338,7 +338,7 @@ export function formatBalanceWithoutSuffix(balance = 0, toUnit: string, withForm
   if (toUnit === undefined) {
     return balance;
   }
-  if (toUnit === BitcoinUnit.BTC) {
+  if (toUnit === BitcoinUnit.KBUC || toUnit === BitcoinUnit.BTC) {
     const value = new BigNumber(balance).dividedBy(100000000).toFixed(8);
     return removeTrailingZeros(value);
   } else if (toUnit === BitcoinUnit.SATS) {

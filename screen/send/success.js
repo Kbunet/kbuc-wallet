@@ -97,13 +97,13 @@ export const SuccessView = ({ amount, amountUnit, fee, invoiceDescription, shoul
             {amount ? (
               <>
                 <Text style={[styles.amountValue, stylesHook.amountValue]}>{amount}</Text>
-                <Text style={[styles.amountUnit, stylesHook.amountUnit]}>{' ' + loc.units[amountUnit]}</Text>
+                <Text style={[styles.amountUnit, stylesHook.amountUnit]}>{' ' + amountUnit === BitcoinUnit.BTC ? loc.units[BitcoinUnit.KBUC] : loc.units[amountUnit]}</Text>
               </>
             ) : null}
           </View>
           {fee > 0 && (
             <Text style={styles.feeText}>
-              {loc.send.create_fee}: {new BigNumber(fee).toFixed()} {loc.units[BitcoinUnit.BTC]}
+              {loc.send.create_fee}: {new BigNumber(fee).toFixed()} {loc.units[BitcoinUnit.KBUC]}
             </Text>
           )}
           <Text numberOfLines={0} style={styles.feeText}>

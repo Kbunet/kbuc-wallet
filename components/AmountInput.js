@@ -90,6 +90,9 @@ class AmountInput extends Component {
       case BitcoinUnit.BTC:
         sats = new BigNumber(amount).multipliedBy(100000000).toString();
         break;
+      case BitcoinUnit.KBUC:
+        sats = new BigNumber(amount).multipliedBy(100000000).toString();
+        break;
       case BitcoinUnit.SATS:
         sats = amount;
         break;
@@ -119,14 +122,14 @@ class AmountInput extends Component {
   changeAmountUnit = () => {
     let previousUnit = this.props.unit;
     let newUnit;
-    if (previousUnit === BitcoinUnit.BTC) {
+    if (previousUnit === BitcoinUnit.BTC || previousUnit === BitcoinUnit.KBUC) {
       newUnit = BitcoinUnit.SATS;
     } else if (previousUnit === BitcoinUnit.SATS) {
       newUnit = BitcoinUnit.LOCAL_CURRENCY;
     } else if (previousUnit === BitcoinUnit.LOCAL_CURRENCY) {
-      newUnit = BitcoinUnit.BTC;
+      newUnit = BitcoinUnit.KBUC;
     } else {
-      newUnit = BitcoinUnit.BTC;
+      newUnit = BitcoinUnit.KBUC;
       previousUnit = BitcoinUnit.SATS;
     }
     this.onAmountUnitChange(previousUnit, newUnit);
@@ -135,6 +138,8 @@ class AmountInput extends Component {
   maxLength = () => {
     switch (this.props.unit) {
       case BitcoinUnit.BTC:
+        return 11;
+      case BitcoinUnit.KBUC:
         return 11;
       case BitcoinUnit.SATS:
         return 15;
@@ -160,7 +165,7 @@ class AmountInput extends Component {
         text = `${parseInt(split[0], 10)}`;
       }
 
-      text = this.props.unit === BitcoinUnit.BTC ? text.replace(/[^0-9.]/g, '') : text.replace(/[^0-9]/g, '');
+      text = this.props.unit === BitcoinUnit.BTC || this.props.unit === BitcoinUnit.KBUC ? text.replace(/[^0-9.]/g, '') : text.replace(/[^0-9]/g, '');
 
       if (text.startsWith('.')) {
         text = '0.';
@@ -221,6 +226,10 @@ class AmountInput extends Component {
     let sat;
     switch (unit) {
       case BitcoinUnit.BTC:
+        sat = new BigNumber(amount).multipliedBy(100000000).toString();
+        secondaryDisplayCurrency = formatBalanceWithoutSuffix(sat, BitcoinUnit.LOCAL_CURRENCY, false);
+        break;
+      case BitcoinUnit.KBUC:
         sat = new BigNumber(amount).multipliedBy(100000000).toString();
         secondaryDisplayCurrency = formatBalanceWithoutSuffix(sat, BitcoinUnit.LOCAL_CURRENCY, false);
         break;
@@ -289,7 +298,7 @@ class AmountInput extends Component {
                   </Pressable>
                 )}
                 {unit !== BitcoinUnit.LOCAL_CURRENCY && amount !== BitcoinUnit.MAX && (
-                  <Text style={[styles.cryptoCurrency, stylesHook.cryptoCurrency]}>{' ' + loc.units[unit]}</Text>
+                  <Text style={[styles.cryptoCurrency, stylesHook.cryptoCurrency]}>{' ' + unit == BitcoinUnit.BTC? loc.units[BitcoinUnit.KBUC] : loc.units[unit]}</Text>
                 )}
               </View>
               <View style={styles.secondaryRoot}>
@@ -297,7 +306,7 @@ class AmountInput extends Component {
                   {unit === BitcoinUnit.LOCAL_CURRENCY && amount !== BitcoinUnit.MAX
                     ? removeTrailingZeros(secondaryDisplayCurrency)
                     : secondaryDisplayCurrency}
-                  {unit === BitcoinUnit.LOCAL_CURRENCY && amount !== BitcoinUnit.MAX ? ` ${loc.units[BitcoinUnit.BTC]}` : null}
+                  {unit === BitcoinUnit.LOCAL_CURRENCY && amount !== BitcoinUnit.MAX ? ` ${loc.units[BitcoinUnit.KBUC]}` : null}
                 </Text>
               </View>
             </View>

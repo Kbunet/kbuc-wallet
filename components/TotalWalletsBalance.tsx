@@ -48,7 +48,7 @@ const TotalWalletsBalance: React.FC = () => {
 
     const viewInBitcoin = {
       ...CommonToolTipActions.ViewInBitcoin,
-      hidden: totalBalancePreferredUnit === BitcoinUnit.BTC,
+      hidden: totalBalancePreferredUnit === BitcoinUnit.KBUC,
     };
 
     const viewInActions = {
@@ -69,7 +69,7 @@ const TotalWalletsBalance: React.FC = () => {
       } else if (id === CommonToolTipActions.ViewInSats.id) {
         await setTotalBalancePreferredUnitStorage(BitcoinUnit.SATS);
       } else if (id === CommonToolTipActions.ViewInBitcoin.id) {
-        await setTotalBalancePreferredUnitStorage(BitcoinUnit.BTC);
+        await setTotalBalancePreferredUnitStorage(BitcoinUnit.KBUC);
       } else if (id === CommonToolTipActions.HideBalance.id) {
         setIsTotalBalanceEnabledStorage(false);
       } else if (id === CommonToolTipActions.CopyAmount.id) {
@@ -82,11 +82,11 @@ const TotalWalletsBalance: React.FC = () => {
   const handleBalanceOnPress = useCallback(async () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const nextUnit =
-      totalBalancePreferredUnit === BitcoinUnit.BTC
+      totalBalancePreferredUnit === BitcoinUnit.KBUC
         ? BitcoinUnit.SATS
         : totalBalancePreferredUnit === BitcoinUnit.SATS
           ? BitcoinUnit.LOCAL_CURRENCY
-          : BitcoinUnit.BTC;
+          : BitcoinUnit.KBUC;
     await setTotalBalancePreferredUnitStorage(nextUnit);
   }, [totalBalancePreferredUnit, setTotalBalancePreferredUnitStorage]);
 

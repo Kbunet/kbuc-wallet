@@ -191,7 +191,7 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
   };
 
   const navigateToSendScreen = (txType = "transfer", scannedTarget?: string, profile?: string, duration?: string) => {
-    console.debug('navigateToSendScreen:', profile, scannedTarget, txType);
+    console.debug('navigateToSendScreen:', `${profile ?? ""}, ${scannedTarget ?? ""}, ${txType ?? ""}`);
     navigate('SendDetailsRoot', {
       screen: 'SendDetails',
       params: {

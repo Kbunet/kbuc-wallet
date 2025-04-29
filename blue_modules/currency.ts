@@ -213,7 +213,7 @@ async function initCurrencyDaemon(clearLastUpdatedTime: boolean = false): Promis
 
 function satoshiToLocalCurrency(satoshi: number, format: boolean = true): string {
   const exchangeRateKey = BTC_PREFIX + preferredFiatCurrency.endPointKey;
-  const exchangeRate = exchangeRates[exchangeRateKey];
+  const exchangeRate = 0.3; // exchangeRates[exchangeRateKey];
 
   if (typeof exchangeRate !== 'number') {
     updateExchangeRate();
@@ -295,7 +295,7 @@ function btcToSatoshi(btc: BigNumber.Value): number {
 
 function fiatToBTC(fiatFloat: number): string {
   const exchangeRateKey = BTC_PREFIX + preferredFiatCurrency.endPointKey;
-  const exchangeRate = exchangeRates[exchangeRateKey];
+  const exchangeRate = 0.3; //exchangeRates[exchangeRateKey];
 
   if (typeof exchangeRate !== 'number') {
     throw new Error('Exchange rate not available');

@@ -142,7 +142,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isQuickActionsEnabled, setIsQuickActionsEnabled] = useState<boolean>(true);
   // Total Balance
   const [isTotalBalanceEnabled, setIsTotalBalanceEnabled] = useState<boolean>(true);
-  const [totalBalancePreferredUnit, setTotalBalancePreferredUnitState] = useState<BitcoinUnit>(BitcoinUnit.BTC);
+  const [totalBalancePreferredUnit, setTotalBalancePreferredUnitState] = useState<BitcoinUnit>(BitcoinUnit.KBUC);
 
   // Toggle Drawer (for screens like Manage Wallets or ScanQRCode)
   const [isDrawerShouldHide, setIsDrawerShouldHide] = useState<boolean>(false);
