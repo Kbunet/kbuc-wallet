@@ -646,11 +646,13 @@ const SendDetails = () => {
     return script;
 }
 
-const createJoinScript = () => {
-   // Ensure content is a Buffer
+const createJoinScript = (signer) => {
+  // Ensure signer is a Buffer
+ const signerBuffer = Buffer.from(signer, 'hex');
   // Compile the script
   const script = bitcoin.script.compile([
-    OPS.OP_CANDIDATEENTRANCE
+    OPS.OP_CANDIDATEENTRANCE,
+    signerBuffer
   ]);
 
   return script;
@@ -813,7 +815,7 @@ const createEnsuranceReleaseScript = (profile) => {
         } else if (txType == 'reputation') {
           targets.push({ value, script: {hex: createReputationScript(transaction.address).toString('hex')} });
         } else if (txType == 'join') {
-          targets.push({ value, script: {hex: createJoinScript().toString('hex')} });
+          targets.push({ value, script: {hex: createJoinScript(transaction.address).toString('hex')} });
         } else if (txType == 'leave') {
           targets.push({ value, script: {hex: createLeaveScript().toString('hex')} });
         } else if (txType == 'ownership') {
@@ -836,7 +838,7 @@ const createEnsuranceReleaseScript = (profile) => {
           } else if (txType == 'reputation') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createReputationScript(transaction.address).toString('hex')} });
           } else if (txType == 'join') {
-            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createJoinScript().toString('hex')} });
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createJoinScript(transaction.address).toString('hex')} });
           } else if (txType == 'leave') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createLeaveScript().toString('hex')} });
           } else if (txType == 'ownership') {
@@ -1554,7 +1556,7 @@ const createEnsuranceReleaseScript = (profile) => {
             </BlueText>
           </TouchableOpacity>
         )}
-        {["transfer", "reputation", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && 
+        {["join", "transfer", "reputation", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && 
         <AddressInput
           onChangeText={text => {
             text = text.trim();
