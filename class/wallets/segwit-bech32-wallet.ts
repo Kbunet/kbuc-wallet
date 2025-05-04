@@ -168,7 +168,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     
 
     for (const t of targets) {
-      if (t.address && t.address.startsWith('bc1')) {
+      if (t.address && t.address.startsWith('kc1')) {
         // in case address is non-typical and takes more bytes than coinselect library anticipates by default
         t.script = { length: bitcoin.address.toOutputScript(t.address).length + 3 };
       }
@@ -178,11 +178,11 @@ export class SegwitBech32Wallet extends LegacyWallet {
         t.script.length = t.script.hex.length / 2 - 4;
       }
     }
-    console.log("bech31 txType:", txType);
+    // console.log("bech31 txType:", txType);
     const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate);
-    console.log("bech31 outputs:", outputs);
-    console.log("bech31 fee:", fee);
-    console.log("bech31 feeRate:", feeRate);
+    // console.log("bech31 outputs:", outputs);
+    // console.log("bech31 fee:", fee);
+    // console.log("bech31 feeRate:", feeRate);
     sequence = sequence || 0xffffffff; // disable RBF by default
     const psbt = new CustomPsbt();
     let c = 0;
@@ -211,7 +211,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     });
     
     const supportValue = outputs.at(0)?.value ?? 0;
-    console.log("supportValue:", supportValue);
+    // console.log("supportValue:", supportValue);
     outputs.forEach(output => {
       // if output has no address - this is change output
       // if (!output.address && !output.script?.hex) {
@@ -261,11 +261,11 @@ export class SegwitBech32Wallet extends LegacyWallet {
       u.script = { length: 27 };
     }
     
-    console.log("bech31 txType:", txType);
+    // console.log("bech31 txType:", txType);
     const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate);
-    console.log("bech31 outputs:", outputs);
-    console.log("bech31 fee:", fee);
-    console.log("bech31 feeRate:", feeRate);
+    // console.log("bech31 outputs:", outputs);
+    // console.log("bech31 fee:", fee);
+    // console.log("bech31 feeRate:", feeRate);
     sequence = sequence || 0xffffffff; // disable RBF by default
     const psbt = new CustomPsbt();
     const keyPair = ECPair.fromWIF(this.secret);
@@ -276,7 +276,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     const hash160 = bitcoin.crypto.ripemd160(bitcoin.crypto.sha256(pubkey));
     const specialTxid = Buffer.concat([Buffer.alloc(12, 0), hash160]); // 12 bytes of 0s + hash160
     // const specialTxid = Buffer.alloc(32, 0); // 12 bytes of 0s + hash160
-    console.log("Special TXID:", specialTxid.toString('hex'));
+    // console.log("Special TXID:", specialTxid.toString('hex'));
     // 🔹 Define the unstaking input
     const unstakingInput = {
       hash: specialTxid.toString('hex'), // TXID (special format)
@@ -293,7 +293,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     
     // 🔹 Define the unstaking output (P2WPKH for issuer)
     const p2wpkh = bitcoin.payments.p2wpkh({ pubkey });
-    console.log("Issuer P2WPKH Address:", p2wpkh.address);
+    // console.log("Issuer P2WPKH Address:", p2wpkh.address);
     // Add output (issuer's P2WPKH)
     psbt.addOutput({
       address: p2wpkh.address,
@@ -304,7 +304,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     // Sign the transaction
     // console.log("Sigining the transaction");
     // psbt.signAllInputs(keyPair);
-    console.log("Finalizing the transaction");
+    // console.log("Finalizing the transaction");
     psbt.finalizeInput(0, (inputIndex, input) => {
       return {
         hash: specialTxid.toString('hex'), // TXID (special format)
@@ -317,9 +317,9 @@ export class SegwitBech32Wallet extends LegacyWallet {
       };
     });
     // psbt.finalizeAllInputs();
-    console.log("Extracting the transaction");
+    // console.log("Extracting the transaction");
     const tx = psbt.extractTransaction();
-    console.log("Unstake tx: ", tx.toHex());
+    // console.log("Unstake tx: ", tx.toHex());
     return { tx, inputs, outputs, fee, psbt };
   }
 

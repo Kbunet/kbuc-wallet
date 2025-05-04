@@ -63,6 +63,7 @@ import CustomTransaction from '../../custom/CustomTransaction';
 import { Difficulty, SupportServerType } from '../../custom/types';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Picker } from '@react-native-picker/picker';
+import { encodeMonetaryValue, encodeParamValue } from '../../custom/vote_util';
 
 interface IPaymentDestinations {
   address: string; // btc address or payment code
@@ -120,7 +121,7 @@ const SendDetails = () => {
   const [changeAddress, setChangeAddress] = useState<string | null>(null);
   const [dumb, setDumb] = useState(false);
   const { isEditable } = routeParams;
-  console.log("routeParams:", routeParams);
+  // console.log("routeParams:", routeParams);
   // if utxo is limited we use it to calculate available balance
   const balance: number = utxos ? utxos.reduce((prev, curr) => prev + curr.value, 0) : (wallet?.getBalance() ?? 0);
   const allBalance = formatBalanceWithoutSuffix(balance, BitcoinUnit.BTC, true);
@@ -134,6 +135,9 @@ const SendDetails = () => {
   const [bidHeight, setBidHeight] = useState("");
   const [bidAmount, setBidAmount] = useState("");
   const [reclaimAmount, setReclaimAmount] = useState("");
+  const [paramId, setParamId] = useState(0);
+  const [proposedValue, setProposedValue] = useState("");
+  const [targetVersion, setTargetVersion] = useState("");
 
   useEffect(() => {
     if (routeParams.profile) {
@@ -197,13 +201,13 @@ const SendDetails = () => {
         if (memo?.trim().length > 0) {
           setParams({ transactionMemo: memo });
         }
-        setParams({ payjoinUrl: pjUrl, amountUnit: BitcoinUnit.BTC });
+        setParams({ payjoinUrl: pjUrl, amountUnit: BitcoinUnit.KBUC });
       } catch (error) {
         console.log(error);
         presentAlert({ title: loc.errors.error, message: loc.send.details_error_decode });
       }
     } else if (routeParams.address) {
-      const { amount, amountSats, unit = BitcoinUnit.BTC } = routeParams;
+      const { amount, amountSats, unit = BitcoinUnit.KBUC } = routeParams;
       // @ts-ignore: needs fix
       setAddresses(value => {
         if (currentAddress && currentAddress.address && routeParams.address) {
@@ -409,7 +413,7 @@ const SendDetails = () => {
         }
       ]);
     }
-    console.log('profile', route.params?.profile);
+    // console.log('profile', route.params?.profile);
     if (route.params?.profile) {
       setProfile(routeParams?.profile);
     }
@@ -493,7 +497,7 @@ const SendDetails = () => {
       options = decoded.options;
     }
 
-    console.log('options', options);
+    // console.log('options', options);
     if (wallet.isAddressValid(address)) {
       setAddresses(addrs => {
         addrs[scrollIndex.current].address = address;
@@ -630,7 +634,8 @@ const SendDetails = () => {
     OP_META: 205,
     OP_STAKE: 206,
     OP_BID: 207,
-    OP_BID_RECLAIM: 208
+    OP_BID_RECLAIM: 208,
+    OP_VOTE: 210,
   };
   
     
@@ -670,7 +675,7 @@ const createLeaveScript = () => {
 }
 
 const createReclaimScript = (profile: string) => {
-  console.log("profile:", profile);
+  // console.log("profile:", profile);
   // Ensure content is a Buffer
   const profileBuffer = Buffer.from(profile, 'hex');
   // Compile the script
@@ -678,13 +683,13 @@ const createReclaimScript = (profile: string) => {
     OPS.OP_CLAIM,
     profileBuffer
   ]);
-  console.log("script:", script.toString('hex'));
+  // console.log("script:", script.toString('hex'));
 
   return script;
 }
 
 const createMetadataScript = (profile: string) => {
-  console.log("profile:", profile);
+  // console.log("profile:", profile);
   // Ensure content is a Buffer
   const profileBuffer = Buffer.from(profile, 'hex');
   const nameBuffer = Buffer.from(metaName);
@@ -720,14 +725,14 @@ const createMetadataScript = (profile: string) => {
   }
   // Compile the script
   const script = bitcoin.script.compile(dataArray);
-  console.log("script:", script.toString('hex'));
+  // console.log("script:", script.toString('hex'));
 
   return script;
 }
 
 const createBidScript = (profile: string) => {
-  console.log("profile:", profile);
-  console.log("Bid amount as big int:", BigNumber(bidAmount).toNumber());
+  // console.log("profile:", profile);
+  // console.log("Bid amount as big int:", BigNumber(bidAmount).toNumber());
   // Ensure content is a Buffer
   const profileBuffer = Buffer.from(profile, 'hex');
 
@@ -741,7 +746,7 @@ const createBidScript = (profile: string) => {
   }
   // Compile the script
   const script = bitcoin.script.compile(scriptData);
-  console.log("script:", script.toString('hex'));
+  // console.log("script:", script.toString('hex'));
 
   return script;
 }
@@ -750,8 +755,8 @@ const createTransferScript = () => {
    // Ensure content is a Buffer
   const profileIDBuffer = Buffer.from(profile, 'hex');
   const recipientBuffer = Buffer.from(addresses[0].address, 'hex');
-  console.log("profileIDBuffer:", profileIDBuffer.toString('hex'));
-  console.log("recipientBuffer:", recipientBuffer.toString('hex'));
+  // console.log("profileIDBuffer:", profileIDBuffer.toString('hex'));
+  // console.log("recipientBuffer:", recipientBuffer.toString('hex'));
   // Compile the script
   let scriptData = [
     OPS.OP_TRANSFER,
@@ -763,7 +768,7 @@ const createTransferScript = () => {
   }
   const script = bitcoin.script.compile(scriptData);
 
-  console.log("Ownership transfer script:", script.toString('hex'));
+  // console.log("Ownership transfer script:", script.toString('hex'));
   return script;
 }
 
@@ -787,14 +792,86 @@ const createEnsuranceReleaseScript = (profile) => {
   return script;
 }
 
+
+/**
+ * Creates a vote script for parameter voting
+ * @returns {Buffer} - The compiled vote script
+ */
+const createVoteScript = () => {
+  // Check if this is a monetary parameter
+  const isMonetary = [
+    5,  // TOTAL_SUPPLY_LIMIT
+    6,  // MINIMUM_PAYMENT
+    7,  // LEADERSHIP_THRESHOLD
+    8,  // SENATE_THRESHOLD
+    9,  // ORGANIZATION_THRESHOLD
+    10, // REDEEM_THRESHOLD
+    11, // RPS_PER_PROFILE
+    12, // MISS_SLASHING_AMOUNT
+    16, // BASE_MISSED_BLOCK_PUNISHMENT
+    19, // LOTTERY_MIN_REWARD_AMOUNT
+    20  // LOTTERY_THRESHOLD
+  ].includes(paramId);
+  
+  // Encode the value based on parameter type
+  const proposedValueBytes = isMonetary 
+    ? encodeMonetaryValue(proposedValue) 
+    : encodeParamValue(paramId, proposedValue);
+  // Create a new script builder
+  const script = bitcoin.script.compile([
+    OPS.OP_VOTE, // Custom opcode for vote
+    encodeParamId(paramId), // Parameter ID encoded as Buffer
+    proposedValueBytes, // Proposed value (Buffer)
+    encodeVersion(targetVersion) // Target version encoded as Buffer
+  ]);
+  
+  return script;
+}
+
+/**
+ * Encodes a parameter ID as a Buffer
+ * @param {number} paramId - The parameter ID
+ * @returns {Buffer} - The encoded parameter ID
+ */
+const encodeParamId = (paramId) => {
+  // For small parameter IDs (< 256), use a single byte
+  if (paramId < 256) {
+    return Buffer.from([paramId]);
+  }
+  
+  // For larger parameter IDs, use 4 bytes (big-endian)
+  const buffer = Buffer.alloc(4);
+  buffer.writeUInt32BE(paramId, 0);
+  return buffer;
+}
+
+/**
+ * Encodes a version number as a Buffer
+ * @param {number} version - The version number
+ * @returns {Buffer} - The encoded version
+ */
+const encodeVersion = (version) => {
+  // For small versions (< 256), use a single byte
+  if (version < 256) {
+    return Buffer.from([version]);
+  }
+  
+  // For larger versions, use 4 bytes (big-endian)
+  const buffer = Buffer.alloc(4);
+  buffer.writeUInt32BE(version, 0);
+  return buffer;
+}
+
+
   const createPsbtTransaction = async () => {
     if (!wallet) return;
     const change = await getChangeAddressAsync();
     console.log("change:", change);
+
     assert(change, 'Could not get change address');
     const requestedSatPerByte = Number(feeRate);
     const lutxo: CreateTransactionUtxo[] = utxos || (wallet?.getUtxo() ?? []);
-    console.log({ requestedSatPerByte, lutxo: lutxo.length });
+    // console.log({ requestedSatPerByte, lutxo: lutxo.length });
 
     const targets: CreateTransactionTarget[] = [];
     // target for the support, is always the first one
@@ -831,6 +908,8 @@ const createEnsuranceReleaseScript = (profile) => {
           targets.push({ value, script: {hex: createStakeScript().toString('hex')} });
         } else if (txType == 'releaseEnsurance') {
           targets.push({ value, script: {hex: createEnsuranceReleaseScript(transaction.address).toString('hex')} });
+        } else if (txType == 'vote') {
+          targets.push({ value, script: {hex: createVoteScript().toString('hex')} });
         }
       } else if (transaction.amount) {
         if (btcToSatoshi(transaction.amount) > 0) {
@@ -854,12 +933,14 @@ const createEnsuranceReleaseScript = (profile) => {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createStakeScript().toString('hex')} });
           } else if (txType == 'releaseEnsurance') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createEnsuranceReleaseScript(transaction.address).toString('hex')} });
+          } else if (txType == 'vote') {
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createVoteScript().toString('hex')} });
           }
         }
       }
     }
 
-    console.log("The targets:", targets);
+    // console.log("The targets:", targets);
 
     const targetsOrig = JSON.parse(JSON.stringify(targets));
     // preserving original since it will be mutated
@@ -1773,6 +1854,67 @@ const createEnsuranceReleaseScript = (profile) => {
               inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
             />
           </View>
+        }
+        {/* Vote */}
+        {txType == 'vote' && <>
+            <View style={[styles.memo, stylesHook.memo]}>
+              <TextInput
+                keyboardType="numeric"
+                onChangeText={text => {
+                  text = text.trim();
+                  setParamId(parseInt(text));
+                  setIsLoading(false);
+                }}
+                placeholder={loc.send.param_id}
+                placeholderTextColor="#81868e"
+                value={paramId.toString()}
+                numberOfLines={1}
+                style={styles.memoText}
+                editable={!isLoading}
+                onSubmitEditing={Keyboard.dismiss}
+                /* @ts-ignore marcos fixme */
+                inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+              />
+            </View>
+            <View style={[styles.memo, stylesHook.memo]}>
+              <TextInput
+                keyboardType="numeric"
+                onChangeText={text => {
+                  text = text.trim();
+                  setProposedValue(text);
+                  setIsLoading(false);
+                }}
+                placeholder={loc.send.proposed_value}
+                placeholderTextColor="#81868e"
+                value={proposedValue}
+                numberOfLines={1}
+                style={styles.memoText}
+                editable={!isLoading}
+                onSubmitEditing={Keyboard.dismiss}
+                /* @ts-ignore marcos fixme */
+                inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+              />
+          </View>
+            <View style={[styles.memo, stylesHook.memo]}>
+              <TextInput
+                keyboardType="numeric"
+                onChangeText={text => {
+                  text = text.trim();
+                  setTargetVersion(text);
+                  setIsLoading(false);
+                }}
+                placeholder={loc.send.targeted_version}
+                placeholderTextColor="#81868e"
+                value={targetVersion}
+                numberOfLines={1}
+                style={styles.memoText}
+                editable={!isLoading}
+                onSubmitEditing={Keyboard.dismiss}
+                /* @ts-ignore marcos fixme */
+                inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
+              />
+          </View>
+          </>
         }
         <View style={[styles.memo, stylesHook.memo]}>
           <TextInput

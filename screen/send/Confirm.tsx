@@ -77,7 +77,7 @@ const Confirm: React.FC = () => {
   const { recipients, targets, walletID, fee, memo, tx, satoshiPerByte, psbt, payjoinUrl, supportRewardAddress, supportRewardAmount, txType } = route.params; // Destructure params
   // console.log("supportRewardAddress", supportRewardAddress);
   // console.log("supportRewardAmount", supportRewardAmount);
-  // console.log(tx);
+  console.log(tx);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { navigate, setOptions, goBack } = navigation;
   const wallet = wallets.find((w: TWallet) => w.getID() === walletID) as TWallet;

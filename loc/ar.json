@@ -176,7 +176,10 @@
     "reset_amount": "إعادة تعيين المبلغ",
     "reset_amount_confirm": "هل تريد إعادة تعيين المبلغ؟",
     "success_done": "تم",
-    "problem_with_psbt": "مشكلة مع PSBT"
+    "problem_with_psbt": "مشكلة مع PSBT",
+    "param_id": "معرف الباراميتر",
+    "proposed_value": "القيمة المقترحة",
+    "targeted_version": "النسخة الحالية"
   },
   "settings": {
     "about": "نبذة",

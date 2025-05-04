@@ -541,6 +541,9 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
       case 'releaseEnsurance':
         sendButtonPress('releaseEnsurance');
         break;
+      case 'vote':
+        sendButtonPress('vote');
+        break;
       case 'getkey':
         handleGetKeyPress();
         break;
@@ -848,6 +851,12 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
                     <Icon name="attach-money" size={22} type="material" color={colors.buttonAlternativeTextColor} />
                   </View>
                   <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Liquidate Balance</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('vote')}>
+                  <View style={styles.iconContainer}>
+                    <Icon name="attach-money" size={22} type="material" color={colors.buttonAlternativeTextColor} />
+                  </View>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Cast a Vote</Text>
                 </TouchableOpacity>
               </View>
 

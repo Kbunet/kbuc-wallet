@@ -211,7 +211,10 @@
     "worker": "Worker public key",
     "supporter": "Supporter publick key",
     "timestamp": "Timestamp",
-    "nonce": "Nonce"
+    "nonce": "Nonce",
+    "param_id": "Parameter ID",
+    "proposed_value": "Proposed value",
+    "targeted_version": "Targeted version"
   },
   "settings": {
     "about": "About",

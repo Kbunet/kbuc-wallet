@@ -1157,7 +1157,7 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
     for (const u of utxos) {
       // this is a hacky way to distinguish native/wrapped segwit, but its good enough for our case since we have only
       // those 2 wallet types
-      if (this._getExternalAddressByIndex(0).startsWith('bc1')) {
+      if (this._getExternalAddressByIndex(0).startsWith('kc1')) {
         u.script = { length: 27 };
       } else if (this._getExternalAddressByIndex(0).startsWith('3')) {
         u.script = { length: 50 };
@@ -1165,7 +1165,7 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
     }
 
     for (const t of targets) {
-      if (t.address && t.address.startsWith('bc1')) {
+      if (t.address && t.address.startsWith('kc1')) {
         // in case address is non-typical and takes more bytes than coinselect library anticipates by default
         t.script = { length: bitcoin.address.toOutputScript(t.address).length + 3 };
       }
