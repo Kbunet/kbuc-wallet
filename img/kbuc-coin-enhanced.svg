@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients and patterns -->
+  <defs>
+    <!-- Main coin gradient -->
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3B5B" />
+      <stop offset="100%" stop-color="#20B2AA" />
+    </linearGradient>
+    
+    <!-- Gold accent gradient -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#FFA500" />
+    </linearGradient>
+    
+    <!-- Purple highlight gradient -->
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9370DB" />
+      <stop offset="100%" stop-color="#8A2BE2" />
+    </linearGradient>
+    
+    <!-- Network pattern -->
+    <pattern id="networkPattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M10 10 L50 10 L50 50 L10 50 Z" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+      <circle cx="10" cy="10" r="3" fill="rgba(255,255,255,0.2)" />
+      <circle cx="50" cy="10" r="3" fill="rgba(255,255,255,0.2)" />
+      <circle cx="10" cy="50" r="3" fill="rgba(255,255,255,0.2)" />
+      <circle cx="50" cy="50" r="3" fill="rgba(255,255,255,0.2)" />
+    </pattern>
+    
+    <!-- Hexagonal puzzle pattern -->
+    <pattern id="puzzlePattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M10,0 L30,0 L40,17.32 L30,34.64 L10,34.64 L0,17.32 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+    </pattern>
+  </defs>
+  
+  <!-- Main coin circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#coinGradient)" />
+  
+  <!-- Background patterns -->
+  <circle cx="256" cy="256" r="220" fill="url(#networkPattern)" />
+  <circle cx="256" cy="256" r="200" fill="url(#puzzlePattern)" />
+  
+  <!-- Support ticket element -->
+  <rect x="400" y="200" width="30" height="40" rx="5" ry="5" fill="rgba(255,255,255,0.8)" />
+  <line x1="410" y1="210" x2="420" y2="210" stroke="#0B3B5B" stroke-width="2" />
+  <line x1="410" y1="220" x2="420" y2="220" stroke="#0B3B5B" stroke-width="2" />
+  <line x1="410" y1="230" x2="420" y2="230" stroke="#0B3B5B" stroke-width="2" />
+  
+  <!-- KBU Letters arranged to suggest a money symbol -->
+  <!-- K Letter -->
+  <path d="M170,150 L210,150 L210,230 L250,150 L300,150 L240,250 L310,350 L260,350 L210,270 L210,350 L170,350 Z" fill="white" />
+  
+  <!-- B Letter (using gold gradient) -->
+  <path d="M240,150 C240,150 300,150 320,150 C340,150 360,170 360,200 C360,230 340,250 320,250 C340,250 370,270 370,300 C370,330 350,350 330,350 C310,350 240,350 240,350 L240,150 Z M280,180 L280,230 C280,230 300,230 310,230 C320,230 325,215 325,205 C325,195 320,180 310,180 C300,180 280,180 280,180 Z M280,270 L280,320 C280,320 300,320 315,320 C330,320 335,305 335,295 C335,285 330,270 315,270 C300,270 280,270 280,270 Z" fill="url(#goldGradient)" />
+  
+  <!-- U Letter (using purple gradient) -->
+  <path d="M310,150 L350,150 L350,290 C350,310 340,330 320,340 C300,350 280,350 260,340 C240,330 230,310 230,290 L230,150 L270,150 L270,280 C270,290 275,300 285,305 C295,310 305,310 315,305 C325,300 330,290 330,280 L330,150 L310,150 Z" fill="url(#purpleGradient)" transform="translate(50, 0)" />
+  
+  <!-- Subtle $ symbol overlay to suggest money -->
+  <path d="M256,120 L256,380 M230,150 L270,150 M230,350 L270,350" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="8" stroke-linecap="round" />
+  
+  <!-- Outer ring -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#goldGradient)" stroke-width="8" />
+</svg>

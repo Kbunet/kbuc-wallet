@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients and patterns -->
+  <defs>
+    <!-- Main coin gradient - enhanced with more vibrant teal -->
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3B5B" />
+      <stop offset="100%" stop-color="#20B2AA" />
+    </linearGradient>
+    
+    <!-- Gold accent gradient - enhanced with more vibrant gold -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#FFA500" />
+    </linearGradient>
+    
+    <!-- Purple highlight gradient - enhanced with more vibrant purple -->
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9370DB" />
+      <stop offset="100%" stop-color="#8A2BE2" />
+    </linearGradient>
+    
+    <!-- Network pattern - enhanced with more visible nodes -->
+    <pattern id="networkPattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M10 10 L50 10 L50 50 L10 50 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+      <circle cx="10" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="10" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+    </pattern>
+    
+    <!-- Hexagonal puzzle pattern - enhanced with more visible hexagons -->
+    <pattern id="puzzlePattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M10,0 L30,0 L40,17.32 L30,34.64 L10,34.64 L0,17.32 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+    </pattern>
+    
+    <!-- Enhanced drop shadow for letters - stronger and more pronounced -->
+    <filter id="enhancedShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" />
+      <feOffset dx="3" dy="3" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <!-- Glow effect for outer ring -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feFlood flood-color="gold" flood-opacity="0.3" result="glow" />
+      <feComposite in="glow" in2="blur" operator="in" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <!-- Inner shadow for letters -->
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
+      <feOffset dx="0" dy="2" />
+      <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff" />
+      <feFlood flood-color="#000000" flood-opacity="0.4" />
+      <feComposite in2="shadowDiff" operator="in" />
+      <feComposite in2="SourceGraphic" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Main coin circle with subtle inner shadow -->
+  <circle cx="256" cy="256" r="240" fill="url(#coinGradient)" />
+  <circle cx="256" cy="256" r="235" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="10" />
+  
+  <!-- Enhanced background patterns -->
+  <circle cx="256" cy="256" r="220" fill="url(#networkPattern)" />
+  <circle cx="256" cy="256" r="200" fill="url(#puzzlePattern)" />
+  
+  <!-- Letter Group Container - PERFECTLY CENTERED with enhanced shadows -->
+  <g transform="translate(126, 156) scale(0.85)">
+    <!-- K Letter - White with enhanced shadow -->
+    <path d="M0,0 L50,0 L50,80 L90,0 L150,0 L85,100 L160,200 L100,200 L50,120 L50,200 L0,200 Z" fill="white" filter="url(#enhancedShadow)" />
+    
+    <!-- Bitcoin-style B Letter - Gold with enhanced details and shadow -->
+    <g transform="translate(140, 0)">
+      <!-- Bitcoin B shape -->
+      <path d="M40,0 C62,0 80,0 90,0 C110,0 125,15 125,40 C125,60 115,75 100,80 C120,85 135,100 135,125 C135,155 115,175 90,175 C80,175 60,175 40,175 L40,0 Z" fill="url(#goldGradient)" filter="url(#enhancedShadow)" />
+      
+      <!-- Bitcoin B inner details - darker for better contrast -->
+      <path d="M65,30 L65,70 L85,70 C95,70 100,60 100,50 C100,40 95,30 85,30 L65,30 Z" fill="#0B3B5B" filter="url(#innerShadow)" />
+      <path d="M65,100 L65,145 L90,145 C100,145 105,135 105,122.5 C105,110 100,100 90,100 L65,100 Z" fill="#0B3B5B" filter="url(#innerShadow)" />
+      
+      <!-- Bitcoin B slashes - more prominent with shadow -->
+      <path d="M65,0 L65,175 M55,30 L75,30 M55,70 L75,70 M55,100 L75,100 M55,145 L75,145" stroke="#0B3B5B" stroke-width="6" filter="url(#innerShadow)" />
+    </g>
+    
+    <!-- U Letter - Purple with enhanced shape and shadow -->
+    <g transform="translate(260, 0)">
+      <path d="M0,0 L40,0 L40,130 C40,140 45,150 55,155 C65,160 75,160 85,155 C95,150 100,140 100,130 L100,0 L140,0 L140,140 C140,160 130,180 110,190 C90,200 70,200 50,190 C30,180 20,160 20,140 L20,0 L0,0 Z" fill="url(#purpleGradient)" filter="url(#enhancedShadow)" />
+    </g>
+  </g>
+  
+  <!-- Enhanced subtle $ symbol overlay -->
+  <path d="M256,120 L256,380 M230,150 L270,150 M230,350 L270,350" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="5" stroke-linecap="round" />
+  
+  <!-- Enhanced outer ring with glow effect -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#goldGradient)" stroke-width="10" filter="url(#glow)" />
+  
+  <!-- Subtle highlights -->
+  <ellipse cx="180" cy="150" rx="150" ry="50" fill="rgba(255,255,255,0.05)" />
+  
+  <!-- Subtle reflections on the coin surface -->
+  <path d="M150,400 Q256,450 362,400" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10" />
+</svg>

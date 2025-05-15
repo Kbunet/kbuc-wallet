@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients and patterns -->
+  <defs>
+    <!-- Main app background gradient - dark blue -->
+    <linearGradient id="appGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A3B5B" />
+      <stop offset="100%" stop-color="#072A40" />
+    </linearGradient>
+    
+    <!-- Main coin gradient - blue tones from reference -->
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A4B7C" />
+      <stop offset="100%" stop-color="#0F6CA6" />
+    </linearGradient>
+    
+    <!-- Gold accent gradient for outer ring -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#FFA500" />
+    </linearGradient>
+    
+    <!-- Purple highlight gradient -->
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9370DB" />
+      <stop offset="100%" stop-color="#8A2BE2" />
+    </linearGradient>
+    
+    <!-- Light blue gradient for K -->
+    <linearGradient id="kGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A0E5FF" />
+      <stop offset="100%" stop-color="#70C8E0" />
+    </linearGradient>
+    
+    <!-- Network pattern - enhanced with more visible nodes -->
+    <pattern id="networkPattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M10 10 L50 10 L50 50 L10 50 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+      <circle cx="10" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="10" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+    </pattern>
+    
+    <!-- Hexagonal puzzle pattern - enhanced with more visible hexagons -->
+    <pattern id="puzzlePattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M10,0 L30,0 L40,17.32 L30,34.64 L10,34.64 L0,17.32 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+    </pattern>
+    
+    <!-- Grid pattern -->
+    <pattern id="gridPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 0 L40 0 L40 40 L0 40 Z" fill="none" stroke="rgba(120,210,255,0.15)" stroke-width="1" />
+      <circle cx="0" cy="0" r="1" fill="rgba(120,210,255,0.3)" />
+      <circle cx="40" cy="0" r="1" fill="rgba(120,210,255,0.3)" />
+      <circle cx="0" cy="40" r="1" fill="rgba(120,210,255,0.3)" />
+      <circle cx="40" cy="40" r="1" fill="rgba(120,210,255,0.3)" />
+      <circle cx="20" cy="20" r="1" fill="rgba(120,210,255,0.3)" />
+    </pattern>
+    
+    <!-- Gold ring pattern -->
+    <pattern id="goldRingPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="4" fill="#FFD700" opacity="0.5" />
+    </pattern>
+    
+    <!-- Drop shadow filter -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15" />
+      <feOffset dx="5" dy="5" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <!-- Outer glow -->
+    <filter id="outerGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="blur" />
+      <feFlood flood-color="#FFD700" flood-opacity="0.3" result="glow" />
+      <feComposite in="glow" in2="blur" operator="in" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <!-- Glass effect -->
+    <filter id="glassEffect" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+      <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+    </filter>
+  </defs>
+  
+  <!-- App icon container (rounded square) -->
+  <rect x="36" y="36" width="440" height="440" rx="80" ry="80" fill="url(#appGradient)" filter="url(#dropShadow)" />
+  
+  <!-- Subtle glass reflection overlay -->
+  <path d="M36,116 Q256,50 476,116 L476,136 Q256,70 36,136 Z" fill="rgba(255,255,255,0.1)" />
+  
+  <!-- Gold border -->
+  <rect x="36" y="36" width="440" height="440" rx="80" ry="80" fill="none" stroke="url(#goldGradient)" stroke-width="10" />
+  
+  <!-- Circular coin area in center -->
+  <circle cx="256" cy="256" r="160" fill="url(#coinGradient)" />
+  
+  <!-- Grid background for coin -->
+  <circle cx="256" cy="256" r="150" fill="url(#gridPattern)" />
+  
+  <!-- Network nodes and connections - scaled down version -->
+  <g id="network" transform="translate(256, 256) scale(0.7) translate(-256, -256)">
+    <!-- First create the connections (lines) so they appear behind nodes -->
+    <!-- Outer ring connections -->
+    <path d="M256,76 L316,86 L366,116 L406,166 L426,226 L426,286 L406,346 L366,396 L316,426 L256,436 L196,426 L146,396 L106,346 L86,286 L86,226 L106,166 L146,116 L196,86 Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+    
+    <!-- Cross connections -->
+    <path d="M256,76 L366,116 L426,226 L366,396 L256,436 L146,396 L86,226 L146,116 Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+    <path d="M196,86 L406,166 L426,286 L316,426 L196,426 L106,346 L86,226 L146,116 Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+    <path d="M316,86 L406,166 L426,286 L406,346 L316,426 L196,426 L106,346 L86,226 Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+    
+    <!-- Inner connections -->
+    <path d="M256,156 L316,166 L356,206 L376,256 L356,306 L316,346 L256,356 L196,346 L156,306 L136,256 L156,206 L196,166 Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" />
+    
+    <!-- Now add the nodes -->
+    <!-- Outer ring nodes - alternating gold and white -->
+    <circle cx="256" cy="76" r="6" fill="url(#goldGradient)" />
+    <circle cx="316" cy="86" r="6" fill="white" />
+    <circle cx="366" cy="116" r="6" fill="url(#goldGradient)" />
+    <circle cx="406" cy="166" r="6" fill="white" />
+    <circle cx="426" cy="226" r="6" fill="url(#goldGradient)" />
+    <circle cx="426" cy="286" r="6" fill="white" />
+    <circle cx="406" cy="346" r="6" fill="url(#goldGradient)" />
+    <circle cx="366" cy="396" r="6" fill="white" />
+    <circle cx="316" cy="426" r="6" fill="url(#goldGradient)" />
+    <circle cx="256" cy="436" r="6" fill="white" />
+    <circle cx="196" cy="426" r="6" fill="url(#goldGradient)" />
+    <circle cx="146" cy="396" r="6" fill="white" />
+    <circle cx="106" cy="346" r="6" fill="url(#goldGradient)" />
+    <circle cx="86" cy="286" r="6" fill="white" />
+    <circle cx="86" cy="226" r="6" fill="url(#goldGradient)" />
+    <circle cx="106" cy="166" r="6" fill="white" />
+    <circle cx="146" cy="116" r="6" fill="url(#goldGradient)" />
+    <circle cx="196" cy="86" r="6" fill="white" />
+    
+    <!-- Inner nodes - all light blue -->
+    <circle cx="256" cy="156" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="316" cy="166" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="356" cy="206" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="376" cy="256" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="356" cy="306" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="316" cy="346" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="256" cy="356" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="196" cy="346" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="156" cy="306" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="136" cy="256" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="156" cy="206" r="4" fill="rgba(120,210,255,0.8)" />
+    <circle cx="196" cy="166" r="4" fill="rgba(120,210,255,0.8)" />
+  </g>
+  
+  <!-- Purple and Gold circles behind K -->
+  <circle cx="256" cy="256" r="60" fill="url(#goldGradient)" />
+  <circle cx="256" cy="256" r="60" fill="url(#purpleGradient)" clip-path="inset(0 60px 0 0)" />
+  
+  <!-- K Letter - White -->
+  <path d="M226,186 L266,186 L266,236 L296,186 L346,186 L296,256 L356,326 L306,326 L266,266 L266,326 L226,326 Z" fill="white" filter="url(#dropShadow)" />
+  
+  <!-- Additional UI elements -->
+  <!-- Top right notification/settings icon -->
+  <g transform="translate(420, 130)">
+    <circle cx="0" cy="0" r="20" fill="url(#goldGradient)" stroke="url(#appGradient)" stroke-width="3" />
+    <circle cx="0" cy="0" r="12" fill="none" stroke="url(#appGradient)" stroke-width="3" />
+  </g>
+  
+  <!-- Bottom right menu/list icon -->
+  <g transform="translate(420, 380)">
+    <rect x="-15" y="-20" width="30" height="40" rx="5" ry="5" fill="white" stroke="url(#purpleGradient)" stroke-width="2" />
+    <line x1="-8" y1="-10" x2="8" y2="-10" stroke="url(#purpleGradient)" stroke-width="3" />
+    <line x1="-8" y1="0" x2="8" y2="0" stroke="url(#purpleGradient)" stroke-width="3" />
+    <line x1="-8" y1="10" x2="8" y2="10" stroke="url(#purpleGradient)" stroke-width="3" />
+  </g>
+  
+  <!-- Subtle glass reflection over entire app -->
+  <rect x="36" y="36" width="440" height="440" rx="80" ry="80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
+  <ellipse cx="256" cy="100" rx="200" ry="50" fill="rgba(255,255,255,0.05)" />
+</svg>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients and patterns -->
+  <defs>
+    <!-- Main coin gradient - enhanced with more vibrant teal -->
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3B5B" />
+      <stop offset="100%" stop-color="#20B2AA" />
+    </linearGradient>
+    
+    <!-- Gold accent gradient - enhanced with more vibrant gold -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#FFA500" />
+    </linearGradient>
+    
+    <!-- Purple highlight gradient - enhanced with more vibrant purple -->
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9370DB" />
+      <stop offset="100%" stop-color="#8A2BE2" />
+    </linearGradient>
+    
+    <!-- Network pattern - enhanced with more visible nodes -->
+    <pattern id="networkPattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M10 10 L50 10 L50 50 L10 50 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+      <circle cx="10" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="10" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+    </pattern>
+    
+    <!-- Hexagonal puzzle pattern - enhanced with more visible hexagons -->
+    <pattern id="puzzlePattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M10,0 L30,0 L40,17.32 L30,34.64 L10,34.64 L0,17.32 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+    </pattern>
+    
+    <!-- Enhanced drop shadow -->
+    <filter id="enhancedShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" />
+      <feOffset dx="3" dy="3" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <!-- Glow effect for outer ring -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feFlood flood-color="gold" flood-opacity="0.3" result="glow" />
+      <feComposite in="glow" in2="blur" operator="in" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main coin circle with teal gradient background -->
+  <circle cx="256" cy="256" r="240" fill="url(#coinGradient)" />
+  
+  <!-- Enhanced background patterns -->
+  <circle cx="256" cy="256" r="220" fill="url(#networkPattern)" />
+  <circle cx="256" cy="256" r="200" fill="url(#puzzlePattern)" />
+  
+  <!-- U-shaped container - exact match to reference but with purple gradient -->
+  <path d="M156,156 L356,156 L356,306 Q356,356 306,356 L206,356 Q156,356 156,306 Z" 
+        fill="url(#purpleGradient)" stroke="white" stroke-width="6" filter="url(#enhancedShadow)" />
+  
+  <!-- Left vertical line -->
+  <rect x="186" y="176" width="8" height="150" fill="white" />
+  
+  <!-- Right vertical line -->
+  <rect x="316" y="176" width="8" height="150" fill="white" />
+  
+  <!-- K-like chevron - exact match to reference -->
+  <path d="M196,251 L226,221 L256,251 L226,281 L196,251 Z" fill="white" />
+  
+  <!-- Bitcoin-style B - exact match to reference but with gold gradient -->
+  <path d="M256,176 L256,351 M266,196 L296,196 Q311,196 311,211 Q311,226 296,226 L266,226 M266,226 L296,226 Q316,226 316,246 Q316,266 296,266 L266,266 M266,196 L266,266" fill="none" stroke="white" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" />
+  <path d="M266,196 L296,196 Q311,196 311,211 Q311,226 296,226 L266,226 M266,226 L296,226 Q316,226 316,246 Q316,266 296,266 L266,266" fill="url(#goldGradient)" />
+  
+  <!-- Enhanced outer ring with glow effect -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#goldGradient)" stroke-width="10" filter="url(#glow)" />
+</svg>

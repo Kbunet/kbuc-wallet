@@ -458,6 +458,8 @@ export const ping = async function () {
 export function txhexToElectrumTransaction(txhex: string): ElectrumTransactionWithHex {
   const tx = CustomTransaction.fromHex(txhex);
 
+  console.log("txhexToElectrumTransaction:", tx);
+
   const ret: ElectrumTransactionWithHex = {
     txid: tx.getId(),
     hash: tx.getId(),

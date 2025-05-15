@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients -->
+  <defs>
+    <!-- Main coin gradient - enhanced with more vibrant teal -->
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3B5B" />
+      <stop offset="100%" stop-color="#20B2AA" />
+    </linearGradient>
+    
+    <!-- Gold accent gradient -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#FFA500" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main coin circle -->
+  <circle cx="256" cy="256" r="240" fill="white" stroke="black" stroke-width="8" />
+  
+  <!-- U-shaped container - exact match to reference -->
+  <path d="M156,156 L356,156 L356,306 Q356,356 306,356 L206,356 Q156,356 156,306 Z" 
+        fill="none" stroke="black" stroke-width="8" />
+  
+  <!-- Left vertical line -->
+  <rect x="186" y="176" width="8" height="150" fill="black" />
+  
+  <!-- Right vertical line -->
+  <rect x="316" y="176" width="8" height="150" fill="black" />
+  
+  <!-- K-like chevron - exact match to reference -->
+  <path d="M196,251 L226,221 L256,251 L226,281 L196,251 Z" fill="black" />
+  
+  <!-- Bitcoin-style B - exact match to reference -->
+  <path d="M256,176 L256,351 M266,196 L296,196 Q311,196 311,211 Q311,226 296,226 L266,226 M266,226 L296,226 Q316,226 316,246 Q316,266 296,266 L266,266 M266,196 L266,266" fill="none" stroke="black" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
+  <path d="M266,196 L296,196 Q311,196 311,211 Q311,226 296,226 L266,226 M266,226 L296,226 Q316,226 316,246 Q316,266 296,266 L266,266" fill="black" />
+</svg>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients and patterns -->
+  <defs>
+    <!-- Main coin gradient - enhanced with more vibrant teal -->
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3B5B" />
+      <stop offset="100%" stop-color="#20B2AA" />
+    </linearGradient>
+    
+    <!-- Gold accent gradient - enhanced with more vibrant gold -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#FFA500" />
+    </linearGradient>
+    
+    <!-- Purple highlight gradient - enhanced with more vibrant purple -->
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9370DB" />
+      <stop offset="100%" stop-color="#8A2BE2" />
+    </linearGradient>
+    
+    <!-- Network pattern - enhanced with more visible nodes -->
+    <pattern id="networkPattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M10 10 L50 10 L50 50 L10 50 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+      <circle cx="10" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="10" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="10" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+      <circle cx="50" cy="50" r="3" fill="rgba(255,255,255,0.25)" />
+    </pattern>
+    
+    <!-- Hexagonal puzzle pattern - enhanced with more visible hexagons -->
+    <pattern id="puzzlePattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M10,0 L30,0 L40,17.32 L30,34.64 L10,34.64 L0,17.32 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+    </pattern>
+    
+    <!-- Enhanced drop shadow -->
+    <filter id="enhancedShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" />
+      <feOffset dx="3" dy="3" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <!-- Glow effect for outer ring -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feFlood flood-color="gold" flood-opacity="0.3" result="glow" />
+      <feComposite in="glow" in2="blur" operator="in" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main coin circle with subtle inner shadow -->
+  <circle cx="256" cy="256" r="240" fill="url(#coinGradient)" />
+  <circle cx="256" cy="256" r="235" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="10" />
+  
+  <!-- Enhanced background patterns -->
+  <circle cx="256" cy="256" r="220" fill="url(#networkPattern)" />
+  <circle cx="256" cy="256" r="200" fill="url(#puzzlePattern)" />
+  
+  <!-- Minimalist U-shaped container -->
+  <path d="M156,156 L356,156 L356,306 C356,356 306,356 256,356 C206,356 156,356 156,306 Z" 
+        fill="url(#purpleGradient)" filter="url(#enhancedShadow)" />
+  
+  <!-- Left vertical line -->
+  <rect x="186" y="176" width="10" height="150" fill="white" />
+  
+  <!-- Right vertical line -->
+  <rect x="316" y="176" width="10" height="150" fill="white" />
+  
+  <!-- K-like chevron -->
+  <path d="M196,251 L226,221 L256,251 L226,281 L196,251 Z" fill="white" />
+  
+  <!-- Bitcoin-style B -->
+  <g transform="translate(256, 176)">
+    <!-- Bitcoin B shape -->
+    <path d="M0,0 C12,0 20,0 25,0 C35,0 42.5,7.5 42.5,20 C42.5,30 37.5,37.5 30,40 C40,42.5 47.5,50 47.5,62.5 C47.5,77.5 37.5,87.5 25,87.5 C20,87.5 10,87.5 0,87.5 L0,0 Z" fill="url(#goldGradient)" />
+    
+    <!-- Bitcoin B shape bottom half -->
+    <path d="M0,87.5 C12,87.5 20,87.5 25,87.5 C35,87.5 42.5,95 42.5,107.5 C42.5,117.5 37.5,125 30,127.5 C40,130 47.5,137.5 47.5,150 C47.5,165 37.5,175 25,175 C20,175 10,175 0,175 L0,87.5 Z" fill="url(#goldGradient)" />
+    
+    <!-- Bitcoin B inner details -->
+    <path d="M10,15 L10,35 L20,35 C25,35 27.5,30 27.5,25 C27.5,20 25,15 20,15 L10,15 Z" fill="#0B3B5B" />
+    <path d="M10,50 L10,72.5 L22.5,72.5 C27.5,72.5 30,67.5 30,61.25 C30,55 27.5,50 22.5,50 L10,50 Z" fill="#0B3B5B" />
+    <path d="M10,102.5 L10,122.5 L20,122.5 C25,122.5 27.5,117.5 27.5,112.5 C27.5,107.5 25,102.5 20,102.5 L10,102.5 Z" fill="#0B3B5B" />
+    <path d="M10,137.5 L10,160 L22.5,160 C27.5,160 30,155 30,148.75 C30,142.5 27.5,137.5 22.5,137.5 L10,137.5 Z" fill="#0B3B5B" />
+    
+    <!-- Bitcoin B slashes -->
+    <path d="M0,0 L0,175 M7.5,15 L12.5,15 M7.5,35 L12.5,35 M7.5,50 L12.5,50 M7.5,72.5 L12.5,72.5 M7.5,102.5 L12.5,102.5 M7.5,122.5 L12.5,122.5 M7.5,137.5 L12.5,137.5 M7.5,160 L12.5,160" stroke="#0B3B5B" stroke-width="3" />
+  </g>
+  
+  <!-- Enhanced outer ring with glow effect -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#goldGradient)" stroke-width="10" filter="url(#glow)" />
+</svg>
