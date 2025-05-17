@@ -286,7 +286,7 @@
     NSDictionary *userInfo = response.notification.request.content.userInfo;
   NSString *blockExplorer = [[[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.io.bluewallet.bluewallet"] stringForKey:@"blockExplorer"];
     if (blockExplorer == nil || [blockExplorer length] == 0) {
-        blockExplorer = @"https://www.mempool.space";
+        blockExplorer = @"https://explorer.kbunet.net";
     }
     
     NSString *address = userInfo[@"data"][@"address"];
