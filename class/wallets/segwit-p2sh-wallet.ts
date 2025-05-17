@@ -5,6 +5,7 @@ import { ECPairFactory } from 'ecpair';
 import ecc from '../../blue_modules/noble_ecc';
 import { LegacyWallet } from './legacy-wallet';
 import { CreateTransactionResult, CreateTransactionUtxo } from './types';
+import { kbunet } from '../../custom/networks';
 
 const ECPair = ECPairFactory(ecc);
 
@@ -63,7 +64,7 @@ export class SegwitP2SHWallet extends LegacyWallet {
     if (this._address) return this._address;
     let address;
     try {
-      const keyPair = ECPair.fromWIF(this.secret);
+      const keyPair = ECPair.fromWIF(this.secret, kbunet);
       const pubKey = keyPair.publicKey;
       if (!keyPair.compressed) {
         console.warn('only compressed public keys are good for segwit');
@@ -109,7 +110,7 @@ export class SegwitP2SHWallet extends LegacyWallet {
     const psbt = new bitcoin.Psbt();
     let c = 0;
     const values: Record<number, number> = {};
-    const keyPair = ECPair.fromWIF(this.secret);
+    const keyPair = ECPair.fromWIF(this.secret, kbunet);
 
     inputs.forEach(input => {
       values[c] = input.value;

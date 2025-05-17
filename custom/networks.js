@@ -40,6 +40,43 @@ exports.bitcoin = {
    * The prefix for Bitcoin Wallet Import Format (WIF) private keys.
    */
   wif: 0x80,
+};/**
+* Represents the Bitcoin network configuration.
+*/
+exports.kbunet = {
+ /**
+  * The message prefix used for signing Bitcoin messages.
+  */
+ messagePrefix: '\x18Kbunet Signed Message:\n',
+ /**
+  * The Bech32 prefix used for Bitcoin addresses.
+  */
+ bech32: 'kc',
+ /**
+  * The BIP32 key prefixes for Bitcoin.
+  */
+ bip32: {
+   /**
+    * The public key prefix for BIP32 extended public keys.
+    */
+   public: 0x049D7CB2,
+   /**
+    * The private key prefix for BIP32 extended private keys.
+    */
+   private: 0x049D7878,
+ },
+ /**
+  * The prefix for Bitcoin public key hashes.
+  */
+ pubKeyHash: 0x2D,
+ /**
+  * The prefix for Bitcoin script hashes.
+  */
+ scriptHash: 0x05,
+ /**
+  * The prefix for Bitcoin Wallet Import Format (WIF) private keys.
+  */
+ wif: 0x80,
 };
 /**
  * Represents the regtest network configuration.

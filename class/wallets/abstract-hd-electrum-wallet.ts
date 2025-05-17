@@ -21,6 +21,7 @@ import { SilentPayment, UTXOType as SPUTXOType, UTXO as SPUTXO } from 'silent-pa
 
 import CustomPsbt from '../../custom/psbt';
 import { toOutputScript } from '../../custom/address';
+import { kbunet } from '../../custom/networks';
 
 const ECPair = ECPairFactory(ecc);
 const bip32 = BIP32Factory(ecc);
@@ -1218,7 +1219,7 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
       let keyPair;
       if (!skipSigning) {
         // skiping signing related stuff
-        keyPair = ECPair.fromWIF(this._getWifForAddress(String(input.address)));
+        keyPair = ECPair.fromWIF(this._getWifForAddress(String(input.address)), kbunet);
         keypairs[c] = keyPair;
       }
       values[c] = input.value;
@@ -1331,7 +1332,7 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
     console.log("bech31 feeRate:", feeRate);
     sequence = sequence || 0xffffffff; // disable RBF by default
     const psbt = new CustomPsbt();
-    const keyPair = ECPair.fromWIF(this.secret);
+    const keyPair = ECPair.fromWIF(this.secret, kbunet);
     const pubkey = keyPair.publicKey;
 
     
@@ -1575,7 +1576,7 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
           if (!wif) {
             throw new Error('Internal error: cant get WIF by index during cosingPsbt');
           }
-          const keyPair = ECPair.fromWIF(wif);
+          const keyPair = ECPair.fromWIF(wif, kbunet);
           try {
             psbt.signInput(cc, keyPair);
           } catch (e) {} // protects agains duplicate cosignings or if this output can't be signed with current wallet
@@ -1737,7 +1738,7 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
 
     // utxo selected. lets create op_return payload using the correct (first!) utxo and correct targets with that payload
 
-    const keyPair = ECPair.fromWIF(inputsTemp[0].wif);
+    const keyPair = ECPair.fromWIF(inputsTemp[0].wif, kbunet);
     const outputNumber = Buffer.from('00000000', 'hex');
     outputNumber.writeUInt32LE(inputsTemp[0].vout);
     const blindedPaymentCode = aliceBip47.getBlindedPaymentCode(

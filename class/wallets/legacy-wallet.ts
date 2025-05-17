@@ -12,6 +12,7 @@ import { randomBytes } from '../rng';
 import { AbstractWallet } from './abstract-wallet';
 import { CreateTransactionResult, CreateTransactionTarget, CreateTransactionUtxo, Transaction, Utxo } from './types';
 import { toOutputScript } from '../../custom/address';
+import { kbunet } from '../../custom/networks';
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 bitcoin.initEccLib(ecc);
 
@@ -74,9 +75,10 @@ export class LegacyWallet extends AbstractWallet {
     if (this._address) return this._address;
     let address;
     try {
-      const keyPair = ECPair.fromWIF(this.secret);
+      const keyPair = ECPair.fromWIF(this.secret, kbunet);
       address = bitcoin.payments.p2pkh({
         pubkey: keyPair.publicKey,
+        network: kbunet,
       }).address;
     } catch (err) {
       return false;
@@ -420,7 +422,7 @@ export class LegacyWallet extends AbstractWallet {
 
     if (!skipSigning) {
       // skiping signing related stuff
-      keyPair = ECPair.fromWIF(this.secret); // secret is WIF
+      keyPair = ECPair.fromWIF(this.secret, kbunet); // secret is WIF
     }
 
     inputs.forEach(input => {
@@ -580,7 +582,7 @@ export class LegacyWallet extends AbstractWallet {
   signMessage(message: string, address: string, useSegwit = true): string {
     const wif = this._getWIFbyAddress(address);
     if (!wif) throw new Error('Invalid address');
-    const keyPair = ECPair.fromWIF(wif);
+    const keyPair = ECPair.fromWIF(wif, kbunet);
     const privateKey = keyPair.privateKey;
     console.log(`Private:`, privateKey?.toString('hex'));
     console.log(`Public:`, keyPair.publicKey?.toString('hex'));
@@ -619,9 +621,13 @@ export class LegacyWallet extends AbstractWallet {
    * @returns {Promise<boolean>}
    */
   async wasEverUsed(): Promise<boolean> {
+    console.log("wasEverUsed");
     const address = this.getAddress();
+    console.log("was ever used after address", address);
     if (!address) return Promise.resolve(false);
+    console.log("was before getting transactions");
     const txs = await BlueElectrum.getTransactionsByAddress(address);
+    console.log("was after getting transactions", txs.length);
     return txs.length > 0;
   }
 }

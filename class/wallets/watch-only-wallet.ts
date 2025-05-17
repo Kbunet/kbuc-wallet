@@ -8,6 +8,7 @@ import { HDSegwitBech32Wallet } from './hd-segwit-bech32-wallet';
 import { HDSegwitP2SHWallet } from './hd-segwit-p2sh-wallet';
 import { LegacyWallet } from './legacy-wallet';
 import { THDWalletForWatchOnly } from './types';
+import { toOutputScript } from '../../custom/address';
 
 const bip32 = BIP32Factory(ecc);
 
@@ -60,7 +61,7 @@ export class WatchOnlyWallet extends LegacyWallet {
     if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) return this.isXpubValid();
 
     try {
-      bitcoin.address.toOutputScript(this.getAddress());
+      toOutputScript(this.getAddress());
       return true;
     } catch (_) {
       return false;

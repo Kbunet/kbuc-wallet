@@ -6,6 +6,7 @@ import ecc from '../blue_modules/noble_ecc';
 import presentAlert from '../components/Alert';
 import { HDSegwitBech32Wallet } from './wallets/hd-segwit-bech32-wallet';
 import assert from 'assert';
+import { kbunet } from '../custom/networks';
 const ECPair = ECPairFactory(ecc);
 
 const delay = (milliseconds: number) => new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -34,7 +35,7 @@ export default class PayjoinTransaction {
       assert(input.witnessUtxo, 'Internal error: input.witnessUtxo is not set');
       const address = bitcoin.address.fromOutputScript(input.witnessUtxo.script);
       const wif = this._wallet._getWifForAddress(address);
-      const keyPair = ECPair.fromWIF(wif);
+      const keyPair = ECPair.fromWIF(wif, kbunet);
 
       unfinalized.signInput(index, keyPair);
     }
@@ -59,7 +60,7 @@ export default class PayjoinTransaction {
       const address = bitcoin.address.fromOutputScript(input.witnessUtxo.script);
       try {
         const wif = this._wallet._getWifForAddress(address);
-        const keyPair = ECPair.fromWIF(wif);
+        const keyPair = ECPair.fromWIF(wif, kbunet);
         payjoinPsbt.signInput(index, keyPair).finalizeInput(index);
       } catch (e) {}
     }

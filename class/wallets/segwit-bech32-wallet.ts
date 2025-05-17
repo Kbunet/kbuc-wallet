@@ -8,6 +8,7 @@ import { CreateTransactionResult, CreateTransactionUtxo } from './types';
 import CustomPsbt from '../../custom/psbt';
 import crypto from 'crypto';
 import { toOutputScript } from '../../custom/address';
+import { kbunet } from '../../custom/networks';
 
 const ECPair = ECPairFactory(ecc);
 
@@ -22,7 +23,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
 
   getPubKey(): string | false {
     try {
-      const keyPair = ECPair.fromWIF(this.secret);
+      const keyPair = ECPair.fromWIF(this.secret, kbunet);
       return keyPair.publicKey.toString('hex');
     } catch (err) { 
       console.log('decryptOtp error:', err);
@@ -44,7 +45,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
         return false;
       }
 
-      const keyPair = ECPair.fromWIF(this.secret);
+      const keyPair = ECPair.fromWIF(this.secret, kbunet);
       if (!keyPair.privateKey) {
         console.log('decryptOtp error: No private key available');
         return false;
@@ -101,13 +102,14 @@ export class SegwitBech32Wallet extends LegacyWallet {
     if (this._address) return this._address;
     let address;
     try {
-      const keyPair = ECPair.fromWIF(this.secret);
+      const keyPair = ECPair.fromWIF(this.secret, kbunet);
       if (!keyPair.compressed) {
         console.warn('only compressed public keys are good for segwit');
         return false;
       }
       address = bitcoin.payments.p2wpkh({
         pubkey: keyPair.publicKey,
+        network: kbunet,
       }).address;
     } catch (err) {
       return false;
@@ -188,7 +190,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     const psbt = new CustomPsbt();
     let c = 0;
     const values: Record<number, number> = {};
-    const keyPair = ECPair.fromWIF(this.secret);
+    const keyPair = ECPair.fromWIF(this.secret, kbunet);
 
     inputs.forEach(input => {
       values[c] = input.value;
@@ -269,7 +271,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     // console.log("bech31 feeRate:", feeRate);
     sequence = sequence || 0xffffffff; // disable RBF by default
     const psbt = new CustomPsbt();
-    const keyPair = ECPair.fromWIF(this.secret);
+    const keyPair = ECPair.fromWIF(this.secret, kbunet);
     const pubkey = keyPair.publicKey;
 
     

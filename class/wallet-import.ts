@@ -97,9 +97,11 @@ const startImport = (
     // 8. check if its a json array from BC-UR with multiple accounts
     let text = importTextOrig.trim();
     let password;
+    console.log("StartImport:", "1");
 
     // BIP38 password required
     if (text.startsWith('6P')) {
+      console.log("StartImport:", "2");
       do {
         password = await onPassword(loc.wallets.looks_like_bip38, loc.wallets.enter_bip38_password);
       } while (!password);
@@ -107,23 +109,29 @@ const startImport = (
 
     // HD BIP39 wallet password is optinal
     const hd = new HDSegwitBech32Wallet();
+    console.log("StartImport:", "3");
     hd.setSecret(text);
     if (askPassphrase && hd.validateMnemonic()) {
+      console.log("StartImport:", "4");
       password = await onPassword(loc.wallets.import_passphrase_title, loc.wallets.import_passphrase_message);
     }
 
     // AEZEED password needs to be correct
     const aezeed = new HDAezeedWallet();
+    console.log("StartImport:", "5");
     aezeed.setSecret(text);
     if (await aezeed.mnemonicInvalidPassword()) {
+      console.log("StartImport:", "6");
       do {
         password = await onPassword('', loc.wallets.enter_bip38_password);
         aezeed.setPassphrase(password);
       } while (await aezeed.mnemonicInvalidPassword());
     }
+    console.log("StartImport:", "7");
 
     // SLIP39 wallet password is optinal
     if (askPassphrase && text.includes('\n')) {
+      console.log("StartImport:", "8");
       const s1 = new SLIP39SegwitP2SHWallet();
       s1.setSecret(text);
 
@@ -134,20 +142,26 @@ const startImport = (
 
     // ELECTRUM segwit wallet password is optinal
     const electrum1 = new HDSegwitElectrumSeedP2WPKHWallet();
+    console.log("StartImport:", "9");
     electrum1.setSecret(text);
     if (askPassphrase && electrum1.validateMnemonic()) {
+      console.log("StartImport:", "10");
       password = await onPassword(loc.wallets.import_passphrase_title, loc.wallets.import_passphrase_message);
     }
 
     // ELECTRUM legacy wallet password is optinal
     const electrum2 = new HDLegacyElectrumSeedP2PKHWallet();
+    console.log("StartImport:", "11");
     electrum2.setSecret(text);
     if (askPassphrase && electrum2.validateMnemonic()) {
+      console.log("StartImport:", "12");
       password = await onPassword(loc.wallets.import_passphrase_title, loc.wallets.import_passphrase_message);
     }
 
+    console.log("StartImport:", "13");
     // is it bip38 encrypted
     if (text.startsWith('6P') && password) {
+      console.log("StartImport:", "14");
       const decryptedKey = await bip38.decryptAsync(text, password);
 
       if (decryptedKey) {
@@ -158,6 +172,7 @@ const startImport = (
     // is it multisig?
     yield { progress: 'multisignature' };
     const ms = new MultisigHDWallet();
+    console.log("StartImport:", "15");
     ms.setSecret(text);
     if (ms.getN() > 0 && ms.getM() > 0) {
       await ms.fetchBalance();
@@ -185,7 +200,9 @@ const startImport = (
     // check bip39 wallets
     yield { progress: 'bip39' };
     const hd2 = new HDSegwitBech32Wallet();
+    console.log("StartImport:", "16");
     hd2.setSecret(text);
+    console.log("StartImport:", "17");
     if (password) {
       hd2.setPassphrase(password);
     }
@@ -275,23 +292,33 @@ const startImport = (
 
     yield { progress: 'wif' };
     const segwitWallet = new SegwitP2SHWallet();
+    console.log("StartImport:", "18");
     segwitWallet.setSecret(text);
+    console.log("StartImport:", "19");
     if (segwitWallet.getAddress()) {
+      console.log("StartImport:", "20");
       // ok its a valid WIF
       let walletFound = false;
 
       yield { progress: 'wif p2wpkh' };
       const segwitBech32Wallet = new SegwitBech32Wallet();
+      console.log("StartImport:", "21");
       segwitBech32Wallet.setSecret(text);
+      console.log("StartImport:", "22");
       if (await segwitBech32Wallet.wasEverUsed()) {
+        console.log("StartImport:", "was ever used");
         // yep, its single-address bech32 wallet
         await segwitBech32Wallet.fetchBalance();
+        console.log("StartImport:", "24");
         walletFound = true;
         yield { wallet: segwitBech32Wallet };
       }
+      console.log("StartImport:", "25");
 
       yield { progress: 'wif p2wpkh-p2sh' };
+      console.log("StartImport:", "26");
       if (await segwitWallet.wasEverUsed()) {
+        console.log("StartImport:", "27");
         // yep, its single-address p2wpkh wallet
         await segwitWallet.fetchBalance();
         walletFound = true;

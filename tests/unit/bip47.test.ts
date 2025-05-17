@@ -6,6 +6,7 @@ import { ECPairFactory } from 'ecpair';
 import ecc from '../../blue_modules/noble_ecc';
 import { HDSegwitBech32Wallet, WatchOnlyWallet } from '../../class';
 import { CreateTransactionUtxo } from '../../class/wallets/types';
+import { kbunet } from '../../custom/networks';
 
 const ECPair = ECPairFactory(ecc);
 
@@ -77,17 +78,17 @@ describe('Bech32 Segwit HD (BIP84) with BIP47', () => {
     ]);
 
     assert.ok(w.weOwnAddress('bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe'));
-    const pubkey = w._getPubkeyByAddress('bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe');
-    const path = w._getDerivationPathByAddress('bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe');
+    const pubkey = w._getPubkeyByAddress('kc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe');
+    const path = w._getDerivationPathByAddress('kc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe');
     assert.ok(pubkey);
     assert.ok(path);
 
-    const keyPair2 = ECPair.fromWIF(w._getWIFbyAddress('bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe') || '');
+    const keyPair2 = ECPair.fromWIF(w._getWIFbyAddress('kc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe') || '', kbunet);
     const address = bitcoin.payments.p2wpkh({
       pubkey: keyPair2.publicKey,
     }).address;
 
-    assert.strictEqual(address, 'bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe');
+    assert.strictEqual(address, 'kc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe');
   });
 
   it('should work (sparrow)', async () => {

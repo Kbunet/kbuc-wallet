@@ -7,6 +7,7 @@ import { ECPairFactory } from 'ecpair';
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import ecc from '../../blue_modules/noble_ecc';
 import { HDLegacyP2PKHWallet, HDSegwitBech32Wallet } from '../../class';
+import { kbunet } from '../../custom/networks';
 
 const ECPair = ECPairFactory(ecc);
 
@@ -88,6 +89,7 @@ describe('Bech32 Segwit HD (BIP84) with BIP47', () => {
     const keyPair2 = ECPair.fromWIF(w._getWIFbyAddress('bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe') || '');
     const address = bitcoin.payments.p2wpkh({
       pubkey: keyPair2.publicKey,
+      network: kbunet,
     }).address;
     assert.strictEqual(address, 'bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe');
 
@@ -113,7 +115,7 @@ describe('Bech32 Segwit HD (BIP84) with BIP47', () => {
     // now, constructing OP_RETURN data to notify sparrow about us
 
     const aliceBip47 = bip47;
-    const keyPair = ECPair.fromWIF(w._getWIFbyAddress('bc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe') || '');
+    const keyPair = ECPair.fromWIF(w._getWIFbyAddress('kc1q57nwf9vfq2qsl80q37wq5h0tjytsk95vgjq4fe') || '', kbunet);
     const bobBip47 = BIP47Factory(ecc).fromPaymentCode(
       'PM8TJi1RuCrgSHTzGMoayUf8xUW6zYBGXBPSWwTiMhMMwqto7G6NA4z9pN5Kn8Pbhryo2eaHMFRRcidCGdB3VCDXJD4DdPD2ZyG3ScLMEvtStAetvPMo',
     );
