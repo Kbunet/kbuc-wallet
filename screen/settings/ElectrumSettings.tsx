@@ -42,7 +42,7 @@ const ElectrumSettings: React.FC = () => {
   const { colors } = useTheme();
   const { server } = useRoute<RouteProps>().params;
   const { setOptions } = useExtendedNavigation();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(true);
   const [serverHistory, setServerHistory] = useState<ElectrumServerItem[]>([]);
   const [config, setConfig] = useState<{ connected?: number; host?: string; port?: string }>({});
@@ -92,8 +92,8 @@ const ElectrumSettings: React.FC = () => {
       const offlineMode = await BlueElectrum.isDisabled();
       const parsedServerHistory: ElectrumServerItem[] = serverHistoryStr ? JSON.parse(serverHistoryStr) : [];
 
-      setHost(savedHost || '');
-      setPort(savedPort ? Number(savedPort) : undefined);
+      setHost(savedHost || 'electrumx.kbunet.net');
+      setPort(savedPort ? Number(savedPort) : 50001);
       setSslPort(savedSslPort ? Number(savedSslPort) : undefined);
       setServerHistory(parsedServerHistory);
       setIsOfflineMode(offlineMode);
@@ -175,6 +175,20 @@ const ElectrumSettings: React.FC = () => {
         await DefaultPreference.set(BlueElectrum.ELECTRUM_TCP_PORT, port?.toString() || '');
         await DefaultPreference.set(BlueElectrum.ELECTRUM_SSL_PORT, sslPort?.toString() || '');
       }
+      // Ensure Electrum connection is not disabled
+      await BlueElectrum.setDisabled(false);
+      
+      // Connect to Electrum server with the new settings
+      try {
+        await BlueElectrum.connectMain();
+        // Wait a moment for the connection to establish
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // Refresh the config to show updated connection status
+        setConfig(await BlueElectrum.getConfig());
+      } catch (connectionError) {
+        console.error('Failed to connect after saving:', connectionError);
+      }
+      
       triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
       presentAlert({ message: loc.settings.electrum_saved });
     } catch (error) {

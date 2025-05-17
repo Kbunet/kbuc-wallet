@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InteractionManager } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import A from '../../blue_modules/analytics';
 import Notifications from '../../blue_modules/notifications';
 import { BlueApp as BlueAppClass, LegacyWallet, TCounterpartyMetadata, TTXMetadata, WatchOnlyWallet } from '../../class';
@@ -73,9 +74,44 @@ export const StorageProvider = ({ children }: { children: React.ReactNode }) => 
     WalletTransactionsStatus.NONE,
   );
   const [walletsInitialized, setWalletsInitialized] = useState<boolean>(false);
-  const [isElectrumDisabled, setIsElectrumDisabled] = useState<boolean>(true);
+  const [isElectrumDisabled, setIsElectrumDisabled] = useState<boolean>(false);
   const [currentSharedCosigner, setCurrentSharedCosigner] = useState<string>('');
   const [reloadTransactionsMenuActionFunction, setReloadTransactionsMenuActionFunction] = useState<() => void>(() => {});
+
+  // Initialize default Electrum server settings
+  useEffect(() => {
+    const initializeElectrumServer = async () => {
+      try {
+        // Set default Electrum server settings if not already set
+        const savedHost = await AsyncStorage.getItem(BlueElectrum.ELECTRUM_HOST);
+        const savedPort = await AsyncStorage.getItem(BlueElectrum.ELECTRUM_TCP_PORT);
+        
+        if (!savedHost) {
+          await AsyncStorage.setItem(BlueElectrum.ELECTRUM_HOST, 'electrumx.kbunet.net');
+        }
+        
+        if (!savedPort) {
+          await AsyncStorage.setItem(BlueElectrum.ELECTRUM_TCP_PORT, '50001');
+        }
+        
+        // Enable Electrum connection
+        await BlueElectrum.setDisabled(false);
+        
+        // Wait a moment before connecting to ensure settings are saved
+        setTimeout(async () => {
+          try {
+            await BlueElectrum.connectMain();
+          } catch (error) {
+            console.log('Connection attempt delayed:', error);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Failed to initialize Electrum server:', error);
+      }
+    };
+    
+    initializeElectrumServer();
+  }, []);
 
   const saveToDisk = useCallback(
     async (force: boolean = false) => {
