@@ -64,6 +64,8 @@ import { Difficulty, SupportServerType } from '../../custom/types';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Picker } from '@react-native-picker/picker';
 import { encodeMonetaryValue, encodeParamValue } from '../../custom/vote_util';
+import * as BlueElectrum from '../../blue_modules/BlueElectrum';
+import * as crypto from '../../custom/crypto';
 
 interface IPaymentDestinations {
   address: string; // btc address or payment code
@@ -422,6 +424,59 @@ const SendDetails = () => {
     }
   }, [route.params?.scannedTarget]);
 
+  useEffect(() => {
+    console.log('SendDetails:', route.params?.txType);
+    if (route.params?.txType == 'releaseEnsurance' && wallet) {
+      console.log('Calling getProfileBalance with wallet:', wallet.getID());
+      getProfileBalance();
+    }
+  }, [wallet]); // Add wallet as a dependency so this runs when wallet is available
+  
+
+  const getProfileBalance = async () => {
+    try {
+      if (!wallet) return;
+      const publicKey = wallet.getPubKey();
+      const buffer = Buffer.from(publicKey, 'hex');
+      const hash = crypto.hash160(buffer);
+      const profileId = hash.toString('hex');
+      const result = await BlueElectrum.verifyProfile(profileId);
+      console.log("SendDetails profile:", result);
+      
+      // Get the balance from the profile
+      const balanceInSats = result.balance || 0;
+      console.log("SendDetails balance in sats:", balanceInSats);
+      
+      // Convert to BTC for display
+      const balanceInBtc = balanceInSats / 100000000;
+      console.log("SendDetails balance in BTC:", balanceInBtc);
+      
+      // Update the addresses state with the correct amount
+      setAddresses(addrs => {
+        // If no addresses exist yet, create one
+        if (addrs.length === 0) {
+          return [{ 
+            address: '', 
+            amount: balanceInBtc.toString(),
+            amountSats: balanceInSats,
+            key: String(Math.random()) 
+          }];
+        }
+        
+        // Otherwise update the first address
+        const newAddrs = [...addrs];
+        newAddrs[0] = {
+          ...newAddrs[0],
+          amount: balanceInBtc.toString(),
+          amountSats: balanceInSats
+        };
+        return newAddrs;
+      });
+    } catch (e) {
+      console.log('getProfileBalance error', e);
+    }
+  }
+
   const getChangeAddressAsync = async () => {
     if (changeAddress) return changeAddress; // cache
 
@@ -561,7 +616,7 @@ const SendDetails = () => {
       } else if (["transfer", "reputation", "ownership", "reclaim", "metadata", "offer", "bid"].includes(txType) && !transaction.address) {
         error = loc.send.details_address_field_is_not_valid;
         console.log('validation error');
-      } else if (balance - Number(transaction.amountSats) < 0) {
+      } else if (balance - Number(transaction.amountSats) < 0 && txType !== 'releaseEnsurance') {
         // first sanity check is that sending amount is not bigger than available balance
         error = frozenBalance > 0 ? loc.send.details_total_exceeds_balance_frozen : loc.send.details_total_exceeds_balance;
         console.log('validation error');
@@ -781,6 +836,7 @@ const createStakeScript = () => {
 }
 
 const createEnsuranceReleaseScript = (profile) => {
+  // console.log("createEnsuranceReleaseScript:", profile);
   const encodedAmount = Buffer.alloc(8);
   encodedAmount.writeBigUInt64LE(BigInt(reclaimAmount), 0); // Minimal encoding (little-endian)
   const script = bitcoin.script.compile([
@@ -968,6 +1024,8 @@ const encodeVersion = (version) => {
       supportAddress,
       supportReward
     );
+
+    // console.log("SendDetails:", outputs);
 
     if (tx && routeParams.launchedBy && psbt) {
       console.warn('navigating back to ', routeParams.launchedBy);
@@ -1514,7 +1572,15 @@ const encodeVersion = (version) => {
 
   const renderCreateButton = () => {
     const totalWithFee = calculateTotalAmount();
-    const isDisabled = totalWithFee === 0 || totalWithFee > balance || balance === 0 || isLoading || addresses.length === 0;
+    
+    // Skip balance checks for releaseEnsurance txType
+    const isReleaseEnsurance = route.params?.txType === 'releaseEnsurance';
+    
+    // For releaseEnsurance, only disable if no addresses or if loading
+    // For other transaction types, use the normal balance checks
+    const isDisabled = isReleaseEnsurance
+      ? (isLoading || addresses.length === 0)
+      : (totalWithFee === 0 || totalWithFee > balance || balance === 0 || isLoading || addresses.length === 0);
 
     return (
       <View style={styles.createButton}>

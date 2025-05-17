@@ -125,7 +125,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
       return (
         bitcoin.payments.p2wpkh({
           pubkey,
-          network: bitcoin.networks.bitcoin,
+          network: kbunet,
         }).address ?? false
       );
     } catch (_) {
@@ -145,7 +145,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
       return (
         bitcoin.payments.p2wpkh({
           output: scriptPubKey2,
-          network: bitcoin.networks.bitcoin,
+          network: kbunet,
         }).address ?? false
       );
     } catch (_) {
@@ -182,7 +182,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
       }
     }
     // console.log("bech31 txType:", txType);
-    const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate);
+    const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate, txType);
     // console.log("bech31 outputs:", outputs);
     // console.log("bech31 fee:", fee);
     // console.log("bech31 feeRate:", feeRate);
@@ -197,7 +197,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
       c++;
 
       const pubkey = keyPair.publicKey;
-      const p2wpkh = bitcoin.payments.p2wpkh({ pubkey });
+      const p2wpkh = bitcoin.payments.p2wpkh({ pubkey, network: kbunet });
       if (!p2wpkh.output) {
         throw new Error('Internal error: no p2wpkh.output during createTransaction()');
       }
@@ -265,7 +265,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     }
     
     // console.log("bech31 txType:", txType);
-    const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate);
+    const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate, txType);
     // console.log("bech31 outputs:", outputs);
     // console.log("bech31 fee:", fee);
     // console.log("bech31 feeRate:", feeRate);
@@ -295,14 +295,17 @@ export class SegwitBech32Wallet extends LegacyWallet {
     
     
     // 🔹 Define the unstaking output (P2WPKH for issuer)
-    const p2wpkh = bitcoin.payments.p2wpkh({ pubkey });
+    const p2wpkh = bitcoin.payments.p2wpkh({ pubkey, network: kbunet });
     // console.log("Issuer P2WPKH Address:", p2wpkh.address);
     // Add output (issuer's P2WPKH)
-    psbt.addOutput({
+    const output = {
       address: p2wpkh.address,
       value: targets[0].value - (psbt.toBuffer().byteLength * feeRate), // Deducting a small fee
       // script: p2wpkh.output,
-    });
+    };
+    psbt.addOutput(output);
+    const finalOutputs = outputs ?? [output];
+    // console.log("CreateUnstackingTransaction:", "Output added successfully");
 
     // Sign the transaction
     // console.log("Sigining the transaction");
@@ -319,11 +322,13 @@ export class SegwitBech32Wallet extends LegacyWallet {
         ])
       };
     });
+    // console.log("CreateUnstackingTransaction:", "finalizeInput");
     // psbt.finalizeAllInputs();
     // console.log("Extracting the transaction");
     const tx = psbt.extractTransaction();
+    // console.log("CreateUnstackingTransaction:", "extractTransaction");
     // console.log("Unstake tx: ", tx.toHex());
-    return { tx, inputs, outputs, fee, psbt };
+    return { tx, inputs, outputs: finalOutputs, fee, psbt };
   }
 
   allowSend() {

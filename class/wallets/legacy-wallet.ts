@@ -367,6 +367,7 @@ export class LegacyWallet extends AbstractWallet {
     utxos: CreateTransactionUtxo[],
     targets: CreateTransactionTarget[],
     feeRate: number,
+    txType: string = 'send'
   ): {
     inputs: CoinSelectReturnInput[];
     outputs: CoinSelectOutput[];
@@ -380,8 +381,10 @@ export class LegacyWallet extends AbstractWallet {
 
     const { inputs, outputs, fee } = algo(utxos, targets as CoinSelectTarget[], feeRate);
 
+    // console.log('coinselect', { inputs, outputs, fee, txType });
+
     // .inputs and .outputs will be undefined if no solution was found
-    if (!inputs || !outputs) {
+    if ((!inputs || !outputs) && txType !== 'releaseEnsurance') {
       throw new Error('Not enough balance. Try sending smaller amount or decrease the fee.');
     }
 
