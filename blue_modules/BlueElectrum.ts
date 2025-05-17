@@ -1149,28 +1149,115 @@ const semVerToInt = function (semver: string): number {
   return ret;
 };
 
-
-export const verifyProfile = async function (profileID: string): Promise<{ rps: number; owner: string; tenent: string; rentedtAt: number; duration: number, ownedProfiles: number }> {
+/**
+ * Verify a profile
+ * @param profileID
+ */
+export const verifyProfile = async function (profileID: string): Promise<any> {
   let profile;
   let timeoutId;
   
+  // Default profile structure with all required fields
+  const defaultProfile = {
+    creator: '',
+    owner: '',
+    signer: '',
+    name: '',
+    link: '',
+    appData: '',
+    rps: 0,
+    generatedRPs: 0,
+    ownedProfilesCount: 0,
+    isRented: false,
+    tenant: '',
+    rentedAt: 0,
+    duration: 0,
+    isCandidate: false,
+    isBanned: false,
+    contribution: 0,
+    isDomain: false,
+    offeredAt: 0,
+    bidAmount: 0,
+    buyer: '',
+    balance: 0,
+    bidTarget: '',
+    ownedProfiles: []
+  };
+  
   if (!mainClient) throw new Error('Electrum client is not connected');
   try {
-    profile = await Promise.race([
+    // First, get the raw profile data
+    const rawProfile = await Promise.race([
       mainClient.blockchainScripthash_getProfile(profileID),
-      new Promise(resolve => (timeoutId = setTimeout(resolve, 15000))),
+      new Promise(resolve => (timeoutId = setTimeout(() => resolve(null), 15000))),
     ]);
+    
+    // If no profile was found, return the default profile
+    if (!rawProfile) {
+      console.log('No profile found');
+      return defaultProfile;
+    }
+    
+    // Extract properties manually to avoid circular references
+    try {
+      // Create a new object with only the properties we need
+      profile = { ...defaultProfile };
+      
+      // Safely extract all primitive properties
+      const extractProps = (source: any, target: any) => {
+        if (!source || typeof source !== 'object') return;
+        
+        // List of properties to extract
+        const props = [
+          'creator', 'owner', 'signer', 'name', 'link', 'appData', 'rps', 
+          'generatedRPs', 'isRented', 'tenant', 'rentedAt', 'duration', 
+          'isCandidate', 'isBanned', 'contribution', 'isDomain', 'offeredAt', 
+          'bidAmount', 'buyer', 'balance', 'bidTarget'
+        ] as const;
+        
+        // Extract each property safely
+        props.forEach(prop => {
+          if (source[prop] !== undefined) {
+            // Use type assertion to avoid TypeScript errors
+            const key = prop as keyof typeof defaultProfile;
+            
+            // For string properties, ensure they're strings
+            if (typeof defaultProfile[key] === 'string') {
+              target[key] = String(source[prop] || '');
+            }
+            // For number properties, ensure they're numbers
+            else if (typeof defaultProfile[key] === 'number') {
+              target[key] = Number(source[prop] || 0);
+            }
+            // For boolean properties, ensure they're booleans
+            else if (typeof defaultProfile[key] === 'boolean') {
+              target[key] = Boolean(source[prop]);
+            }
+          }
+        });
+        
+        // Handle ownedProfiles array specially
+        if (Array.isArray(source.ownedProfiles)) {
+          // Just count the profiles, don't include the actual objects
+          target.ownedProfilesCount = source.ownedProfiles.length;
+          target.ownedProfiles = [];
+        }
+      };
+      
+      // Extract properties from the raw profile
+      extractProps(rawProfile, profile);
+      
+      console.log('Safely extracted profile:', profile);
+    } catch (extractError) {
+      console.error('Error extracting profile properties:', extractError);
+      return defaultProfile;
+    }
   } catch (error) {
     console.error('Error verifying profile:', error);
-    return { rps: 0, owner: '', tenent: '', rentedtAt: 0, duration: 0, ownedProfiles: 0 };
+    return defaultProfile;
   } finally {
     clearTimeout(timeoutId);
   }
 
-  console.log(profile);
-  if (!profile) {
-    return { rps: 0, owner: '', tenent: '', rentedtAt: 0, duration: 0, ownedProfiles: 0 };
-  }
- 
   return profile;
 };

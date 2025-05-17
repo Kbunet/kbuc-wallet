@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, View, ScrollView, ActivityIndicator, TouchableOp
 import { BlueButtonLink, BlueCard, BlueSpacing10, BlueSpacing20 } from '../../BlueComponents';
 import Button from '../../components/Button';
 import { useTheme } from '../../components/themes';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, RouteProp, ParamListBase } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
 import Clipboard from '@react-native-clipboard/clipboard';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
@@ -12,14 +12,28 @@ import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import { scanQrHelper } from '../../helpers/scan-qr';
 
 interface ProfileData {
-  rps: number;
+  creator: string;
   owner: string;
+  signer: string;
+  name: string;
+  link: string;
+  appData: string;
+  rps: number;
+  generatedRPs: number;
+  ownedProfilesCount: number;
+  isRented: boolean;
   tenant: string;
   rentedAt: number;
   duration: number;
-  ownedProfilesCount: number;
   isCandidate: boolean;
   isBanned: boolean;
+  contribution: number;
+  isDomain: boolean;
+  offeredAt: number;
+  bidAmount: number;
+  buyer: string;
+  balance: number;
+  bidTarget: string;
 }
 
 interface ProfileResponse {
@@ -42,8 +56,8 @@ interface ProfileResponse {
   ownedProfilesCount: number;
 }
 
-interface RouteProps {
-  params?: {
+interface ProfileVerificationParams extends ParamListBase {
+  ProfileVerification: {
     scannedData?: string;
     scanTime?: number;
     profileId?: string;
@@ -51,7 +65,7 @@ interface RouteProps {
 }
 
 const ProfileVerification: React.FC = () => {
-  const route = useRoute<RouteProps>();
+  const route = useRoute<RouteProp<ProfileVerificationParams, 'ProfileVerification'>>();
   const { colors } = useTheme();
   const [profileId, setProfileId] = useState<string>('');
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -114,8 +128,16 @@ const ProfileVerification: React.FC = () => {
     triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
   };
 
-  const handleVerify = async (id?: string) => {
-    const profileToVerify = id || profileId;
+  const handleVerify = async (id?: string | any) => {
+    // Check if id is an object (likely an event) and not a string
+    if (id && typeof id !== 'string' && id.nativeEvent) {
+      console.log('Received event object instead of profile ID, using state profileId');
+      id = undefined; // Reset to undefined so we use the profileId from state
+    }
+    
+    const profileToVerify = typeof id === 'string' ? id : profileId;
+    console.log('Verifying profile:', profileToVerify);
+    
     if (!profileToVerify) return;
     
     setIsLoading(true);
@@ -128,15 +150,30 @@ const ProfileVerification: React.FC = () => {
       if (result) {
         // Check if the profile exists in the root level
         if (result.owner && result.rps) {
+          // Map all available profile data to our ProfileData interface
           setProfile({
-            rps: result.rps,
-            owner: result.owner,
+            creator: result.creator || '',
+            owner: result.owner || '',
+            signer: result.signer || '',
+            name: result.name || '',
+            link: result.link || '',
+            appData: result.appData || '',
+            rps: result.rps || 0,
+            generatedRPs: result.generatedRPs || 0,
+            ownedProfilesCount: Array.isArray(result.ownedProfiles) ? result.ownedProfiles.length : 0,
+            isRented: result.isRented || false,
             tenant: result.tenant || '',
             rentedAt: result.rentedAt || 0,
             duration: result.duration || 0,
-            ownedProfilesCount: result.ownedProfiles?.length || 0,
             isCandidate: result.isCandidate || false,
             isBanned: result.isBanned || false,
+            contribution: result.contribution || 0,
+            isDomain: result.isDomain || false,
+            offeredAt: result.offeredAt || 0,
+            bidAmount: result.bidAmount || 0,
+            buyer: result.buyer || '',
+            balance: result.balance || 0,
+            bidTarget: result.bidTarget || ''
           });
           animateProfileIn();
           triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
@@ -145,19 +182,34 @@ const ProfileVerification: React.FC = () => {
         else if (result.ownedProfiles?.length > 0) {
           // Find the specific profile in the ownedProfiles array
           const targetProfile = result.ownedProfiles.find(
-            p => p.id.toLowerCase() === profileToVerify.toLowerCase()
+            p => p.id?.toLowerCase() === profileToVerify.toLowerCase()
           );
-          
+
           if (targetProfile) {
+            // Map all available profile data from the target profile
             setProfile({
-              rps: targetProfile.rps,
-              owner: targetProfile.owner,
+              creator: targetProfile.creator || result.creator || '',
+              owner: targetProfile.owner || '',
+              signer: targetProfile.signer || result.signer || '',
+              name: targetProfile.name || '',
+              link: targetProfile.link || '',
+              appData: targetProfile.appData || '',
+              rps: targetProfile.rps || 0,
+              generatedRPs: targetProfile.generatedRPs || 0,
+              ownedProfilesCount: result.ownedProfiles.length,
+              isRented: targetProfile.isRented || false,
               tenant: targetProfile.tenant || '',
               rentedAt: targetProfile.rentedAt || 0,
               duration: targetProfile.duration || 0,
-              ownedProfilesCount: result.ownedProfiles.length,
               isCandidate: targetProfile.isCandidate || false,
               isBanned: targetProfile.isBanned || false,
+              contribution: targetProfile.contribution || 0,
+              isDomain: targetProfile.isDomain || false,
+              offeredAt: targetProfile.offeredAt || 0,
+              bidAmount: targetProfile.bidAmount || 0,
+              buyer: targetProfile.buyer || '',
+              balance: targetProfile.balance || 0,
+              bidTarget: targetProfile.bidTarget || ''
             });
             animateProfileIn();
             triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
@@ -342,6 +394,16 @@ const ProfileVerification: React.FC = () => {
       color: colors.successColor,
       opacity: 1,
     },
+    sectionTitle: {
+      color: colors.foregroundColor,
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginTop: 16,
+      marginBottom: 8,
+      paddingBottom: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.formBorder,
+    },
     verifyButton: {
       backgroundColor: colors.buttonBackgroundColor,
       minHeight: 48,
@@ -390,6 +452,14 @@ const ProfileVerification: React.FC = () => {
       paddingHorizontal: 16,
       fontSize: 14,
       marginBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginTop: 16,
+      marginBottom: 8,
+      paddingBottom: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
     },
     errorContainer: {
       flexDirection: 'row',
@@ -540,7 +610,7 @@ const ProfileVerification: React.FC = () => {
                 stylesHook.verifyButton,
                 (!profileId || isLoading) && stylesHook.verifyButtonDisabled
               ]}
-              textStyle={stylesHook.verifyButtonText}
+              buttonTextColor={stylesHook.verifyButtonText?.color}
             />
           </View>
           
@@ -562,10 +632,28 @@ const ProfileVerification: React.FC = () => {
               ]}
             >
               <View style={styles.profileContent}>
+                {/* Basic Information */}
+                <Text style={[styles.sectionTitle, stylesHook.sectionTitle]}>Basic Information</Text>
                 <InfoRow 
                   label="Trust Level" 
                   value={profile.rps} 
                   info="Reputation Points (RPs) indicate the trust level of this profile"
+                />
+                <InfoRow 
+                  label="Generated RPs" 
+                  value={profile.generatedRPs} 
+                  info="Reputation Points generated by this profile"
+                />
+                <InfoRow 
+                  label="Balance" 
+                  value={profile.balance} 
+                  info="Current balance of this profile in satoshis"
+                />
+                <InfoRow 
+                  label="Creator" 
+                  value={profile.creator} 
+                  copyable 
+                  info="The creator of this profile"
                 />
                 <InfoRow 
                   label="Owner" 
@@ -574,34 +662,140 @@ const ProfileVerification: React.FC = () => {
                   info="The current owner of this profile"
                 />
                 <InfoRow 
-                  label="Owned Profiles" 
-                  value={profile.ownedProfilesCount}
-                  info="Number of profiles owned by this owner"
+                  label="Signer" 
+                  value={profile.signer} 
+                  copyable 
+                  info="The signer key for this profile"
                 />
                 <InfoRow 
                   label="Status" 
                   value={profile.isBanned ? "Banned" : profile.isCandidate ? "Candidate" : "Active"}
                   info="Current status of the profile"
                 />
+                <InfoRow 
+                  label="Is Domain" 
+                  value={profile.isDomain ? "Yes" : "No"}
+                  info="Whether this profile represents a domain"
+                />
                 
-                {profile.tenant && (
+                {/* Profile Details */}
+                {(profile.name || profile.link || profile.appData) && (
                   <>
+                    <Text style={[styles.sectionTitle, stylesHook.sectionTitle]}>Profile Details</Text>
+                    {profile.name && (
+                      <InfoRow 
+                        label="Name" 
+                        value={profile.name} 
+                        info="The name associated with this profile"
+                      />
+                    )}
+                    {profile.link && (
+                      <InfoRow 
+                        label="Link" 
+                        value={profile.link} 
+                        copyable
+                        info="External link associated with this profile"
+                      />
+                    )}
+                    {profile.appData && (
+                      <InfoRow 
+                        label="App Data" 
+                        value={profile.appData} 
+                        copyable
+                        info="Application-specific data for this profile"
+                      />
+                    )}
+                  </>
+                )}
+                
+                {/* Ownership Information */}
+                <Text style={[styles.sectionTitle, stylesHook.sectionTitle]}>Ownership Information</Text>
+                <InfoRow 
+                  label="Owned Profiles" 
+                  value={profile.ownedProfilesCount}
+                  info="Number of profiles owned by this owner"
+                />
+                <InfoRow 
+                  label="Contribution" 
+                  value={profile.contribution}
+                  info="Contribution level of this profile"
+                />
+                
+                {/* Rental Information */}
+                {(profile.isRented || profile.tenant) && (
+                  <>
+                    <Text style={[styles.sectionTitle, stylesHook.sectionTitle]}>Rental Information</Text>
                     <InfoRow 
-                      label="Rented To" 
-                      value={profile.tenant} 
-                      copyable
-                      info="Current tenant of this profile"
+                      label="Is Rented" 
+                      value={profile.isRented ? "Yes" : "No"}
+                      info="Whether this profile is currently rented"
                     />
-                    <InfoRow 
-                      label="Rental Period" 
-                      value={profile.duration}
-                      info="Duration of the current rental period in blocks and approximate days"
-                    />
-                    <InfoRow 
-                      label="Rented at Block" 
-                      value={profile.rentedAt}
-                      info="Block number when the rental started"
-                    />
+                    {profile.tenant && (
+                      <InfoRow 
+                        label="Rented To" 
+                        value={profile.tenant} 
+                        copyable
+                        info="Current tenant of this profile"
+                      />
+                    )}
+                    {(profile.duration > 0) && (
+                      <InfoRow 
+                        label="Rental Period" 
+                        value={profile.duration}
+                        info="Duration of the current rental period in blocks and approximate days"
+                      />
+                    )}
+                    {(profile.rentedAt > 0) && (
+                      <InfoRow 
+                        label="Rented at Block" 
+                        value={profile.rentedAt}
+                        info="Block number when the rental started"
+                      />
+                    )}
+                  </>
+                )}
+                
+                {/* Market Information */}
+                {(profile.offeredAt > 0 || profile.bidAmount > 0 || profile.buyer || profile.bidTarget || profile.balance > 0) && (
+                  <>
+                    <Text style={[styles.sectionTitle, stylesHook.sectionTitle]}>Market Information</Text>
+                    {profile.offeredAt > 0 && (
+                      <InfoRow 
+                        label="Offered At" 
+                        value={profile.offeredAt}
+                        info="Block number when this profile was offered for sale"
+                      />
+                    )}
+                    {profile.bidAmount > 0 && (
+                      <InfoRow 
+                        label="Bid Amount" 
+                        value={profile.bidAmount}
+                        info="Current bid amount for this profile"
+                      />
+                    )}
+                    {profile.buyer && (
+                      <InfoRow 
+                        label="Buyer" 
+                        value={profile.buyer}
+                        copyable
+                        info="Current buyer for this profile"
+                      />
+                    )}
+                    {profile.bidTarget && (
+                      <InfoRow 
+                        label="Bid Target" 
+                        value={profile.bidTarget}
+                        copyable
+                        info="Target of the current bid"
+                      />
+                    )}
+                    {profile.balance > 0 && (
+                      <InfoRow 
+                        label="Balance" 
+                        value={profile.balance}
+                        info="Current balance of this profile"
+                      />
+                    )}
                   </>
                 )}
               </View>

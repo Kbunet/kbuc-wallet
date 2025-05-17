@@ -768,6 +768,7 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
                   })
                 }],
                 height: availableHeight,
+                backgroundColor: colors.elevated,
               }
             ]}>
             <ScrollView 
@@ -854,7 +855,7 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('vote')}>
                   <View style={styles.iconContainer}>
-                    <Icon name="attach-money" size={22} type="material" color={colors.buttonAlternativeTextColor} />
+                    <Icon name="check-square" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
                   <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Cast a Vote</Text>
                 </TouchableOpacity>
@@ -1088,7 +1089,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   buttonPanel: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 8,
     width: '85%',
