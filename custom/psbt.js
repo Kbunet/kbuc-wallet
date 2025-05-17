@@ -2,6 +2,25 @@ const bitcoin = require('bitcoinjs-lib');
 const utils_1 = require('bip174/src/lib/utils');
 const varuint = require('bip174/src/lib/converter/varint');
 
+const networks_1 = require('./networks');
+
+/**
+ * These are the default arguments for a Psbt instance.
+ */
+const DEFAULT_OPTS = {
+  /**
+   * A bitcoinjs Network object. This is only used if you pass an `address`
+   * parameter to addOutput. Otherwise it is not needed and can be left default.
+   */
+  network: networks_1.bitcoin,
+  /**
+   * When extractTransaction is called, the fee rate is checked.
+   * THIS IS NOT TO BE RELIED ON.
+   * It is only here as a last ditch effort to prevent sending a 500 BTC fee etc.
+   */
+  maximumFeeRate: 5000, // satoshi per byte
+};
+
 
 function range(n) {
   return [...Array(n).keys()];
@@ -9,9 +28,9 @@ function range(n) {
 
 // Extend the PSBT class to handle support tickets
 class CustomPsbt extends bitcoin.Psbt {
-  
-  constructor(...args) {
-    super(...args);
+  constructor(opts = {}) {
+    super(opts);
+    this.opts = Object.assign({}, DEFAULT_OPTS, opts);
     console.log('CustomPsbt instance created');
   }
 

@@ -7,6 +7,7 @@ import { LegacyWallet } from './legacy-wallet';
 import { CreateTransactionResult, CreateTransactionUtxo } from './types';
 import CustomPsbt from '../../custom/psbt';
 import crypto from 'crypto';
+import { toOutputScript } from '../../custom/address';
 
 const ECPair = ECPairFactory(ecc);
 
@@ -170,7 +171,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
     for (const t of targets) {
       if (t.address && t.address.startsWith('kc1')) {
         // in case address is non-typical and takes more bytes than coinselect library anticipates by default
-        t.script = { length: bitcoin.address.toOutputScript(t.address).length + 3 };
+        t.script = { length: toOutputScript(t.address).length + 3 };
       }
 
       if (t.script?.hex) {

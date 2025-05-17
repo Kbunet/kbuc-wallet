@@ -4,6 +4,7 @@ import { PayjoinClient } from 'payjoin-client';
 
 import { HDSegwitBech32Wallet } from '../../class';
 import PayjoinTransaction from '../../class/payjoin-transaction';
+import { toOutputScript } from '../../custom/address';
 
 const utxos = [
   {
@@ -54,7 +55,7 @@ describe('PayjoinTransaction', () => {
     };
 
     const payjoinClient = new PayjoinClient({
-      paymentScript: bitcoin.address.toOutputScript('bc1qyvdzueznsh0rsyfqzdtj9ce7nlx4rlg2v93lcl'),
+      paymentScript: toOutputScript('kc1qyvdzueznsh0rsyfqzdtj9ce7nlx4rlg2v93lcl'),
       wallet,
       payjoinRequester: payjoinRequesterMock,
     });
@@ -115,7 +116,7 @@ describe('PayjoinTransaction', () => {
     };
 
     const payjoinClient = new PayjoinClient({
-      paymentScript: bitcoin.address.toOutputScript('bc1qy0ydthpa35m37pvwl5tu76j0srcmcwtmaur3aw'),
+      paymentScript: toOutputScript('kc1qy0ydthpa35m37pvwl5tu76j0srcmcwtmaur3aw'),
       wallet,
       payjoinRequester: payjoinRequesterMock,
     });

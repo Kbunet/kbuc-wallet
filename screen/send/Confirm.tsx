@@ -29,6 +29,7 @@ import CustomTransaction from '../../custom/CustomTransaction';
 import SupportTicket from '../../custom/SupportTicket';
 import { createSupportRequest, getSupportRequestStatus } from '../../custom/providers/SupportServer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { toOutputScript } from '../../custom/address';
 
 enum ActionType {
   SET_LOADING = 'SET_LOADING',
@@ -183,7 +184,7 @@ const Confirm: React.FC = () => {
     if (!(recipients.length > 0) || !recipients[0].address) {
       return undefined;
     }
-    return bitcoin.address.toOutputScript(recipients[0].address, bitcoin.networks.bitcoin);
+    return toOutputScript(recipients[0].address, bitcoin.networks.bitcoin);
   };
 
   

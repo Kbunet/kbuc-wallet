@@ -8,6 +8,7 @@ import { WatchOnlyWallet } from './';
 import Azteco from './azteco';
 import Lnurl from './lnurl';
 import type { TWallet } from './wallets/types';
+import { toOutputScript } from '../custom/address';
 
 type TCompletionHandlerParams = [string, object];
 type TContext = {
@@ -322,7 +323,7 @@ class DeeplinkSchemaMatch {
     address = address.replace('://', ':').replace('bitcoin:', '').replace('BITCOIN:', '').replace('bitcoin=', '').split('?')[0];
     let isValidBitcoinAddress = false;
     try {
-      bitcoin.address.toOutputScript(address);
+      toOutputScript(address);
       isValidBitcoinAddress = true;
     } catch (err) {
       isValidBitcoinAddress = false;

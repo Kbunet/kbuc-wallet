@@ -4,6 +4,7 @@ import { SilentPayment } from 'silent-payments';
 
 import ecc from '../blue_modules/noble_ecc';
 import * as bitcoin from 'bitcoinjs-lib';
+import { toOutputScript } from '../custom/address';
 
 export class ContactList {
   isBip47PaymentCodeValid(pc: string) {
@@ -25,7 +26,7 @@ export class ContactList {
 
   isAddressValid(address: string): boolean {
     try {
-      bitcoin.address.toOutputScript(address); // throws, no?
+      toOutputScript(address); // throws, no?
 
       if (!address.toLowerCase().startsWith('bc1')) return true;
       const decoded = bitcoin.address.fromBech32(address);

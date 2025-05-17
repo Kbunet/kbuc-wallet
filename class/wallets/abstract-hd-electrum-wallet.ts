@@ -20,6 +20,7 @@ import { CreateTransactionResult, CreateTransactionTarget, CreateTransactionUtxo
 import { SilentPayment, UTXOType as SPUTXOType, UTXO as SPUTXO } from 'silent-payments';
 
 import CustomPsbt from '../../custom/psbt';
+import { toOutputScript } from '../../custom/address';
 
 const ECPair = ECPairFactory(ecc);
 const bip32 = BIP32Factory(ecc);
@@ -1167,7 +1168,7 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
     for (const t of targets) {
       if (t.address && t.address.startsWith('kc1')) {
         // in case address is non-typical and takes more bytes than coinselect library anticipates by default
-        t.script = { length: bitcoin.address.toOutputScript(t.address).length + 3 };
+        t.script = { length: toOutputScript(t.address).length + 3 };
       }
 
       if (t.script?.hex) {
