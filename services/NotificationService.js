@@ -2,6 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Queue for pending OTP notifications
 let pendingOTPNotifications = [];
+
+// Store the last notification that opened the app
+let lastOpenedNotification = null;
 import { Platform, Alert } from 'react-native';
 
 // Try to import Firebase messaging, but handle the case where it might not be configured
@@ -229,9 +232,8 @@ export const handleNotification = async (remoteMessage) => {
     
     // Handle different types of notifications
     if (data) {
-      // Check if this is an OTP notification - look for the required fields for OTP decryption
-      if (data.notification_id && data.app_id && data.encryptedMessage && data.ephemeralPublicKey && 
-          data.iv && data.authTag && data.recipient_public_key) {
+      // Check if this is an OTP notification
+      if (isOTPNotification(data)) {
         console.log('Received OTP notification from app:', data.app_name || data.app_id, data);
         
         // We need to dynamically import the NotificationOTPHandler component
@@ -359,6 +361,27 @@ export const processPendingOTPNotifications = () => {
   } else if (pendingOTPNotifications.length > 0) {
     console.warn('Cannot process pending notifications: NotificationOTPHandler not available');
   }
+  
+  // Also check if we have a notification that opened the app
+  if (lastOpenedNotification && lastOpenedNotification.data && 
+      global.notificationOTPHandler && typeof global.notificationOTPHandler.processOTPNotification === 'function') {
+    console.log('Processing notification that opened the app:', lastOpenedNotification.data);
+    
+    // Process the notification data
+    if (isOTPNotification(lastOpenedNotification.data)) {
+      global.notificationOTPHandler.processOTPNotification(lastOpenedNotification.data);
+      // Clear after processing
+      lastOpenedNotification = null;
+    }
+  }
+};
+
+/**
+ * Check if a notification is an OTP notification
+ */
+const isOTPNotification = (data) => {
+  return data && data.notification_id && data.app_id && data.encryptedMessage && 
+         data.ephemeralPublicKey && data.iv && data.authTag && data.recipient_public_key;
 };
 
 /**
@@ -384,6 +407,38 @@ export const initializeNotificationService = async () => {
         // Set up notification handlers
         messaging().onMessage(handleNotification);
         messaging().setBackgroundMessageHandler(handleNotification);
+        
+        // Handle notification taps when app is in background
+        messaging().onNotificationOpenedApp(notification => {
+          console.log('Notification opened app from background state:', notification);
+          lastOpenedNotification = notification;
+          
+          // Process the notification data
+          if (notification && notification.data) {
+            // Small delay to ensure the app is fully in foreground
+            setTimeout(() => {
+              console.log('Processing notification that opened the app');
+              handleNotification(notification);
+            }, 1000);
+          }
+        });
+        
+        // Handle notification taps when app is closed
+        messaging().getInitialNotification().then(notification => {
+          if (notification) {
+            console.log('Notification opened app from closed state:', notification);
+            lastOpenedNotification = notification;
+            
+            // Process the notification data
+            if (notification && notification.data) {
+              // Longer delay to ensure the app is fully initialized
+              setTimeout(() => {
+                console.log('Processing initial notification that opened the app');
+                handleNotification(notification);
+              }, 3000);
+            }
+          }
+        });
         
         // Handle token refresh
         messaging().onTokenRefresh(async (fcmToken) => {
