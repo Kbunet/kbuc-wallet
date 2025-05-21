@@ -87,6 +87,8 @@
     "@react-native-clipboard/clipboard": "1.14.3",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/push-notification-ios": "1.11.0",
+    "@react-native-firebase/app": "^22.2.0",
+    "@react-native-firebase/messaging": "^22.2.0",
     "@react-native-menu/menu": "https://github.com/BlueWallet/menu.git#a33379d",
     "@react-native-picker/picker": "^2.9.0",
     "@react-native/gradle-plugin": "0.75.4",

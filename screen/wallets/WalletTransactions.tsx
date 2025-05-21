@@ -1,4 +1,6 @@
-import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registerWalletWithProxy, getFcmToken } from '../../services/NotificationService';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -881,6 +883,12 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }) => {
                     <Icon name="paste" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
                   </View>
                   <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Paste</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => registerWalletForNotifications()}>
+                  <View style={styles.iconContainer}>
+                    <Icon name="bell" size={22} type="font-awesome" color={colors.buttonAlternativeTextColor} />
+                  </View>
+                  <Text style={[styles.buttonText, { color: colors.buttonAlternativeTextColor }]}>Allow Notifications</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

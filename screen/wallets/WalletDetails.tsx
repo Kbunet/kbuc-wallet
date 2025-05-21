@@ -39,10 +39,14 @@ import { unlockWithBiometrics, useBiometrics } from '../../hooks/useBiometrics';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc, { formatBalanceWithoutSuffix } from '../../loc';
 import { BitcoinUnit, Chain } from '../../models/bitcoinUnits';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useStorage } from '../../hooks/context/useStorage';
 import { popToTop } from '../../NavigationService';
 import { useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
+import { registerWalletWithProxy, getFcmToken } from '../../services/NotificationService';
 import { LightningTransaction, Transaction, TWallet } from '../../class/wallets/types';
+
+
 import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
 
 type RouteProps = RouteProp<DetailViewStackParamList, 'WalletDetails'>;
@@ -58,6 +62,7 @@ const WalletDetails: React.FC = () => {
     wallet.useWithHardwareWalletEnabled ? wallet.useWithHardwareWalletEnabled() : false,
   );
   const [isBIP47Enabled, setIsBIP47Enabled] = useState<boolean>(wallet.isBIP47Enabled ? wallet.isBIP47Enabled() : false);
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState<boolean>(false);
 
   const [isContactsVisible, setIsContactsVisible] = useState<boolean>(
     (wallet.allowBIP47 && wallet.allowBIP47() && wallet.isBIP47Enabled && wallet.isBIP47Enabled()) || false,
@@ -145,6 +150,42 @@ const WalletDetails: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletID]);
+
+  useEffect(() => {
+    setOptions({ headerTitle: loc.wallets.details_title });
+    InteractionManager.runAfterInteractions(() => {
+      if (wallet.getLabel().length === 0) {
+        setWalletName(wallet.typeReadable);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Check if notifications are enabled for this wallet
+  useEffect(() => {
+    const checkNotificationStatus = async () => {
+      try {
+        // Get wallet identifier using the wallet address
+        const pubkey = wallet?.getPubKey() ?? null;
+        
+        if (!pubkey) return;
+        
+        const storedWallets = await AsyncStorage.getItem('notificationWallets');
+        if (!storedWallets) {
+          setIsNotificationsEnabled(false);
+          return;
+        }
+        
+        const walletList = JSON.parse(storedWallets);
+        setIsNotificationsEnabled(walletList.includes(pubkey));
+      } catch (error) {
+        console.error('Error checking notification status:', error);
+        setIsNotificationsEnabled(false);
+      }
+    };
+    
+    checkNotificationStatus();
+  }, [wallet]);
 
   const navigateToOverviewAndDeleteWallet = () => {
     setIsLoading(true);
@@ -382,6 +423,49 @@ const WalletDetails: React.FC = () => {
   const onViewMasterFingerPrintPress = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsMasterFingerPrintVisible(true);
+  };
+  
+  // Toggle notifications for this wallet
+  const toggleNotifications = async (value: boolean) => {
+    try {
+      // Get wallet identifier using the wallet address
+      const pubkey = wallet.getPubKey() ?? null;
+      
+      if (!pubkey) {
+        Alert.alert('Error', 'Could not get wallet identifier');
+        return;
+      }
+      
+      // Get current list of allowed wallets for notifications
+      const storedWallets = await AsyncStorage.getItem('notificationWallets');
+      let walletList = storedWallets ? JSON.parse(storedWallets) : [];
+      
+      if (value) {
+        // Enable notifications
+        if (!walletList.includes(pubkey)) {
+          walletList.push(pubkey);
+          await AsyncStorage.setItem('notificationWallets', JSON.stringify(walletList));
+          
+          // Try to register with notification proxy if we have a token
+          const fcmToken = await getFcmToken();
+          if (fcmToken) {
+            console.log('Registering wallet with proxy:', pubkey, fcmToken);
+            await registerWalletWithProxy(pubkey, fcmToken);
+          }
+        }
+      } else {
+        // Disable notifications
+        walletList = walletList.filter((key: string) => key !== pubkey);
+        await AsyncStorage.setItem('notificationWallets', JSON.stringify(walletList));
+      }
+      
+      setIsNotificationsEnabled(value);
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      Alert.alert('Error', 'Failed to update notification settings');
+      // Revert the toggle
+      setIsNotificationsEnabled(!value);
+    }
   };
 
   return (
@@ -659,6 +743,19 @@ const WalletDetails: React.FC = () => {
                   />
                 </>
               )}
+              <BlueSpacing20 />
+              
+              {/* Notifications Toggle */}
+              <View style={[styles.hardware, { borderColor: colors.inputBorderColor }]}>
+                <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.details_notifications}</Text>
+                <Switch
+                  testID="NotificationsSwitch"
+                  value={isNotificationsEnabled}
+                  onValueChange={toggleNotifications}
+                  disabled={isToolTipMenuVisible}
+                />
+              </View>
+              
               <BlueSpacing20 />
               <BlueSpacing20 />
               <TouchableOpacity
