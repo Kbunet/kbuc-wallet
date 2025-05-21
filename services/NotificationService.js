@@ -17,7 +17,7 @@ try {
 }
 
 // The URL of the notification proxy server
-const NOTIFICATION_PROXY_URL = 'http://10.0.2.2:3800/api';
+const NOTIFICATION_PROXY_URL = 'https://notifier.kbunet.net/api';
 
 /**
  * Request permission for push notifications
