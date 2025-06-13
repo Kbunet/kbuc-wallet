@@ -1,5 +1,6 @@
-import React, { useContext, useImperativeHandle, forwardRef } from 'react';
+import React, { useContext, useImperativeHandle, forwardRef, useRef } from 'react';
 import { Alert } from 'react-native';
+import loc from '../loc';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { StorageContext } from './Context/StorageProvider';
 import { SegwitBech32Wallet } from '../class/wallets/segwit-bech32-wallet';
@@ -71,12 +72,25 @@ const NotificationOTPHandler = forwardRef<NotificationOTPHandlerRef, Props>(
   ({ onOTPDecrypted }, ref) => {
     const { wallets } = useContext(StorageContext);
     
+    // Keep track of processed OTP notifications to prevent duplicates
+    const processedOTPNotifications = useRef<Set<string>>(new Set());
+    
     // Create a handler object that will be exposed via ref and globally
     const handler = {
       processOTPNotification: async (notificationData: OTPNotificationData) => {
         try {
           log('Processing OTP notification');
           log(`App: ${notificationData.app_name}, Type: ${notificationData.type}`);
+          
+          // Generate a unique notification ID to track processed notifications
+          const notificationId = notificationData.notification_id || 
+                               `${notificationData.app_id}-${notificationData.recipient_public_key}-${Date.now()}`;
+          
+          // Check if we've already processed this notification
+          if (processedOTPNotifications.current.has(notificationId)) {
+            log(`Skipping already processed notification: ${notificationId}`);
+            return;
+          }
 
           // Find the wallet that matches the recipient public key
           const targetWallet = findTargetWallet(wallets, notificationData.recipient_public_key);
@@ -102,19 +116,21 @@ const NotificationOTPHandler = forwardRef<NotificationOTPHandlerRef, Props>(
 
           // Show confirmation dialog
           Alert.alert(
-            'Authorization Request',
-            `${notificationData.app_name} is requesting authorization to login using your wallet "${walletName}". Do you want to approve this request?`,
+            loc.notifications.authorization_request_title,
+            loc.notifications.authorization_request_message
+              .replace('{app_name}', notificationData.app_name)
+              .replace('{wallet_name}', walletName),
             [
               {
-                text: 'Reject',
+                text: loc.notifications.reject,
                 style: 'cancel',
                 onPress: () => {
                   log('User rejected authorization');
-                  Alert.alert('Cancelled', 'Authorization request rejected');
+                  Alert.alert(loc.notifications.cancelled_title, loc.notifications.cancelled_message);
                 },
               },
               {
-                text: 'Approve',
+                text: loc.notifications.approve,
                 style: 'default',
                 onPress: async () => {
                   try {
@@ -154,18 +170,21 @@ const NotificationOTPHandler = forwardRef<NotificationOTPHandlerRef, Props>(
                       } catch (error) {
                         log('Error sending callback', error);
                         Alert.alert(
-                          'Warning',
-                          'OTP was decrypted but we could not notify the application. The OTP has been copied to your clipboard.'
+                          loc.notifications.warning_title,
+                          loc.notifications.otp_callback_failed
                         );
                       }
                     }
 
+                    // Mark this notification as processed
+                    processedOTPNotifications.current.add(notificationId);
+                    
                     // Copy to clipboard
                     Clipboard.setString(decryptedOtp);
                     log('Copied decrypted OTP to clipboard');
 
                     // Show success message
-                    Alert.alert('Success', 'OTP decrypted successfully and copied to clipboard');
+                    Alert.alert(loc.notifications.success_title, loc.notifications.otp_success);
 
                     // Notify parent component
                     if (onOTPDecrypted) {
@@ -174,7 +193,7 @@ const NotificationOTPHandler = forwardRef<NotificationOTPHandlerRef, Props>(
                     }
                   } catch (error) {
                     log('Error during OTP decryption', error);
-                    Alert.alert('Error', error instanceof Error ? error.message : 'Failed to decrypt OTP');
+                    Alert.alert(loc.errors.error, error instanceof Error ? error.message : loc.notifications.processing_error);
                   }
                 },
               },
@@ -182,7 +201,7 @@ const NotificationOTPHandler = forwardRef<NotificationOTPHandlerRef, Props>(
           );
         } catch (error) {
           log('Error processing OTP notification', error);
-          Alert.alert('Error', 'Failed to process OTP notification');
+          Alert.alert(loc.errors.error, loc.notifications.processing_error);
         }
       }
     };

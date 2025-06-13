@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useRef } from 'react';
 import { Linking } from 'react-native';
 import { findTargetWallet } from '../class/otp-decrypt';
 import { SegwitBech32Wallet } from '../class/wallets/segwit-bech32-wallet';
@@ -55,6 +55,8 @@ const extractScheme = (url: string): string => {
 
 export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
   const { wallets, walletsInitialized } = useContext(StorageContext);
+  // Keep track of processed OTP requests to prevent duplicates
+  const processedOTPRequests = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!walletsInitialized) {
@@ -81,6 +83,15 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
         
         if (!url) {
           log('No URL provided');
+          return;
+        }
+        
+        // Generate a unique request ID from the URL to track processed requests
+        const requestId = url.trim();
+        
+        // Check if we've already processed this exact request
+        if (processedOTPRequests.current.has(requestId)) {
+          log(`Skipping already processed OTP request: ${requestId.substring(0, 20)}...`);
           return;
         }
         
@@ -235,6 +246,9 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
                     }
                     await Linking.openURL(responseUrl);
 
+                    // Mark this request as processed
+                    processedOTPRequests.current.add(requestId);
+                    
                     // Show success message
                     presentAlert({
                       title: 'Success',
@@ -297,6 +311,8 @@ export const OTPHandler: React.FC<Props> = ({ onOTPDecrypted }) => {
     return () => {
       log('Cleaning up URL handler');
       subscription.remove();
+      // Clear processed requests on unmount
+      processedOTPRequests.current.clear();
     };
   }, [onOTPDecrypted, wallets, walletsInitialized]);
 

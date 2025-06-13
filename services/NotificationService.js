@@ -1,11 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform, Alert } from 'react-native';
 
 // Queue for pending OTP notifications
 let pendingOTPNotifications = [];
 
+// Queue for pending transaction notifications
+let pendingTransactionNotifications = [];
+
+// Global variables to track notification processing state
+let isProcessingOTPNotification = false;
+let otpNotificationQueue = [];
+
+// Transaction notification handling
+let isProcessingTransactionNotification = false;
+let transactionNotificationQueue = [];
+
+// Sets to track processed notification IDs to avoid duplicates
+const processedOTPNotificationIds = new Set();
+const processedTransactionNotificationIds = new Set();
+
 // Store the last notification that opened the app
 let lastOpenedNotification = null;
-import { Platform, Alert } from 'react-native';
 
 // Try to import Firebase messaging, but handle the case where it might not be configured
 let messaging;
@@ -204,21 +219,98 @@ export const updateAllWalletTokens = async () => {
  * @param {Object} remoteMessage - The remote message from FCM
  */
 export const handleNotification = async (remoteMessage) => {
+  console.log('Received notification:', JSON.stringify(remoteMessage));
+  
+  // Store notification in history
+  await storeNotificationInHistory(remoteMessage);
+  
+  // Check if it's an OTP notification
+  if (isOTPNotification(remoteMessage.data)) {
+    console.log('Processing OTP notification');
+    
+    // Check if notification has already been processed
+    if (processedOTPNotificationIds.has(remoteMessage.data.notification_id)) {
+      console.log('OTP notification already processed, skipping:', remoteMessage.data.notification_id);
+      return;
+    }
+    
+    // Add to processed set
+    processedOTPNotificationIds.add(remoteMessage.data.notification_id);
+    
+    // If OTP handler is ready, process notification, otherwise queue it
+    if (global.notificationOTPHandler && !isProcessingOTPNotification) {
+      isProcessingOTPNotification = true;
+      try {
+        await global.notificationOTPHandler.processOTPNotification(remoteMessage.data);
+      } catch (error) {
+        console.log('Error processing OTP notification:', error);
+      } finally {
+        isProcessingOTPNotification = false;
+        
+        // Process any queued notifications
+        if (otpNotificationQueue.length > 0) {
+          processPendingOTPNotifications();
+        }
+      }
+    } else {
+      console.log('OTP handler not ready, queueing notification');
+      otpNotificationQueue.push(remoteMessage.data);
+    }
+  } 
+  // Check if it's a transaction notification (send, reputation, ownership, platform)
+  else if (isTransactionNotification(remoteMessage.data)) {
+    console.log('Processing transaction notification of type:', remoteMessage.data.type);
+    
+    // Check if notification has already been processed
+    if (processedTransactionNotificationIds.has(remoteMessage.data.notification_id)) {
+      console.log('Transaction notification already processed, skipping:', remoteMessage.data.notification_id);
+      return;
+    }
+    
+    // Add to processed set
+    processedTransactionNotificationIds.add(remoteMessage.data.notification_id);
+    
+    // If transaction handler is ready, process notification, otherwise queue it
+    if (global.notificationTransactionHandler && !isProcessingTransactionNotification) {
+      isProcessingTransactionNotification = true;
+      try {
+        await global.notificationTransactionHandler.processTransactionNotification(remoteMessage.data);
+      } catch (error) {
+        console.log('Error processing transaction notification:', error);
+      } finally {
+        isProcessingTransactionNotification = false;
+        
+        // Process any queued notifications
+        if (transactionNotificationQueue.length > 0) {
+          processPendingTransactionNotifications();
+        }
+      }
+    } else {
+      console.log('Transaction handler not ready, queueing notification');
+      transactionNotificationQueue.push(remoteMessage.data);
+    }
+  } else {
+    // For other notification types, store as pending approval
+    console.log('Storing unknown notification type as pending approval');
+    await storePendingApproval(remoteMessage.data);
+  }
+};
+
+/**
+ * Store a notification in history
+ * @param {Object} remoteMessage - The remote message from FCM
+ */
+async function storeNotificationInHistory(remoteMessage) {
   try {
-    console.log('Notification received:', JSON.stringify(remoteMessage));
-    
-    // Extract notification data
-    const { notification, data } = remoteMessage;
-    
-    // Store the notification in AsyncStorage for history
+    // Store notification in history
     const storedNotifications = await AsyncStorage.getItem('notifications');
     const notifications = storedNotifications ? JSON.parse(storedNotifications) : [];
     
     notifications.push({
       id: remoteMessage.messageId,
-      title: notification?.title || 'New Notification',
-      body: notification?.body || '',
-      data: data || {},
+      title: remoteMessage.notification?.title || 'New Notification',
+      body: remoteMessage.notification?.body || '',
+      data: remoteMessage.data || {},
       timestamp: new Date().toISOString(),
       read: false
     });
@@ -229,53 +321,16 @@ export const handleNotification = async (remoteMessage) => {
     }
     
     await AsyncStorage.setItem('notifications', JSON.stringify(notifications));
-    
-    // Handle different types of notifications
-    if (data) {
-      // Check if this is an OTP notification
-      if (isOTPNotification(data)) {
-        console.log('Received OTP notification from app:', data.app_name || data.app_id, data);
-        
-        // We need to dynamically import the NotificationOTPHandler component
-        // This is because we can't directly require React components in a JS file
-        try {
-          // Get the NotificationOTPHandler component from the global scope
-          // This will be set up in App.tsx
-          console.log('Checking global.notificationOTPHandler:', global.notificationOTPHandler);
-          
-          if (global.notificationOTPHandler && typeof global.notificationOTPHandler.processOTPNotification === 'function') {
-            console.log('NotificationOTPHandler found, processing notification');
-            global.notificationOTPHandler.processOTPNotification(data);
-          } else {
-            console.warn('NotificationOTPHandler not available or not properly initialized');
-            // Add to pending queue for later processing
-            console.log('Adding notification to pending queue for later processing');
-            pendingOTPNotifications.push(data);
-            // Also store as pending approval for UI display
-            storeAsPendingApproval(data);
-          }
-        } catch (error) {
-          console.error('Error processing OTP notification:', error);
-          // Store as pending approval for later processing
-          storeAsPendingApproval(data);
-        }
-      } 
-      // Handle other types of notifications that need approval
-      else if (data.notification_id && data.app_id) {
-        // Store as pending approval
-        storeAsPendingApproval(data);
-      }
-    }
   } catch (error) {
-    console.error('Error handling notification:', error);
+    console.error('Error storing notification in history:', error);
   }
-};
+}
 
 /**
  * Store notification data as a pending approval
  * @param {Object} data - The notification data
  */
-async function storeAsPendingApproval(data) {
+async function storePendingApproval(data) {
   try {
     // Store pending approval requests
     const storedRequests = await AsyncStorage.getItem('pendingApprovals');
@@ -342,46 +397,86 @@ export const sendNotificationResponse = async (notificationId, publicKey, respon
 };
 
 /**
- * Process any pending OTP notifications
+ * Process pending OTP notifications that were queued while the handler wasn't ready
  */
-export const processPendingOTPNotifications = () => {
-  console.log(`Processing ${pendingOTPNotifications.length} pending OTP notifications`);
+export const processPendingOTPNotifications = async () => {
+  console.log('Processing pending OTP notifications, queue length:', otpNotificationQueue.length);
   
-  if (pendingOTPNotifications.length > 0 && global.notificationOTPHandler && 
-      typeof global.notificationOTPHandler.processOTPNotification === 'function') {
+  if (otpNotificationQueue.length > 0 && !isProcessingOTPNotification) {
+    isProcessingOTPNotification = true;
     
-    // Process each pending notification
-    pendingOTPNotifications.forEach(notification => {
-      console.log('Processing pending OTP notification:', notification.app_name || notification.app_id);
-      global.notificationOTPHandler.processOTPNotification(notification);
-    });
-    
-    // Clear the queue
-    pendingOTPNotifications = [];
-  } else if (pendingOTPNotifications.length > 0) {
-    console.warn('Cannot process pending notifications: NotificationOTPHandler not available');
+    try {
+      const notification = otpNotificationQueue.shift();
+      if (notification && global.notificationOTPHandler) {
+        await global.notificationOTPHandler.processOTPNotification(notification);
+      }
+    } catch (error) {
+      console.log('Error processing pending OTP notification:', error);
+    } finally {
+      isProcessingOTPNotification = false;
+      
+      // Process next notification in queue if any
+      if (otpNotificationQueue.length > 0) {
+        processPendingOTPNotifications();
+      }
+    }
   }
+};
+
+/**
+ * Process pending transaction notifications that were queued while the handler wasn't ready
+ */
+export const processPendingTransactionNotifications = async () => {
+  console.log('Processing pending transaction notifications, queue length:', transactionNotificationQueue.length);
   
-  // Also check if we have a notification that opened the app
-  if (lastOpenedNotification && lastOpenedNotification.data && 
-      global.notificationOTPHandler && typeof global.notificationOTPHandler.processOTPNotification === 'function') {
-    console.log('Processing notification that opened the app:', lastOpenedNotification.data);
+  if (transactionNotificationQueue.length > 0 && !isProcessingTransactionNotification) {
+    isProcessingTransactionNotification = true;
     
-    // Process the notification data
-    if (isOTPNotification(lastOpenedNotification.data)) {
-      global.notificationOTPHandler.processOTPNotification(lastOpenedNotification.data);
-      // Clear after processing
-      lastOpenedNotification = null;
+    try {
+      const notification = transactionNotificationQueue.shift();
+      if (notification && global.notificationTransactionHandler) {
+        await global.notificationTransactionHandler.processTransactionNotification(notification);
+      }
+    } catch (error) {
+      console.log('Error processing pending transaction notification:', error);
+    } finally {
+      isProcessingTransactionNotification = false;
+      
+      // Process next notification in queue if any
+      if (transactionNotificationQueue.length > 0) {
+        processPendingTransactionNotifications();
+      }
     }
   }
 };
 
 /**
  * Check if a notification is an OTP notification
+ * @param {object} notificationData - The notification data
+ * @returns {boolean} - True if it's an OTP notification
  */
-const isOTPNotification = (data) => {
-  return data && data.notification_id && data.app_id && data.encryptedMessage && 
-         data.ephemeralPublicKey && data.iv && data.authTag && data.recipient_public_key;
+const isOTPNotification = (notificationData) => {
+  return (
+    notificationData &&
+    notificationData.type === 'otp' &&
+    notificationData.encryptedMessage &&
+    notificationData.ephemeralPublicKey &&
+    notificationData.iv &&
+    notificationData.authTag
+  );
+};
+
+/**
+ * Check if a notification is a transaction notification (send, reputation, ownership, platform)
+ * @param {object} notificationData - The notification data
+ * @returns {boolean} - True if it's a transaction notification
+ */
+const isTransactionNotification = (notificationData) => {
+  return (
+    notificationData &&
+    ['send', 'reputation', 'ownership', 'platform'].includes(notificationData.type) &&
+    notificationData.notification_id
+  );
 };
 
 /**

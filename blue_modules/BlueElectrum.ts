@@ -1203,6 +1203,7 @@ export const verifyProfile = async function (profileID: string): Promise<any> {
     try {
       // Create a new object with only the properties we need
       profile = { ...defaultProfile };
+      console.log('Profile:', JSON.stringify(profile, null, 2));
       
       // Safely extract all primitive properties
       const extractProps = (source: any, target: any) => {
@@ -1241,7 +1242,7 @@ export const verifyProfile = async function (profileID: string): Promise<any> {
         if (Array.isArray(source.ownedProfiles)) {
           // Just count the profiles, don't include the actual objects
           target.ownedProfilesCount = source.ownedProfiles.length;
-          target.ownedProfiles = [];
+          target.ownedProfiles = source.ownedProfiles;
         }
       };
       

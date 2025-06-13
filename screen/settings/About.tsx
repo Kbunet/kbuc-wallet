@@ -98,6 +98,25 @@ const About: React.FC = () => {
           )}
         </View>
       </BlueCard>
+      
+      <BlueCard>
+        <View style={styles.attribution}>
+          <Text style={[styles.attributionTitle, {color: colors.foregroundColor}]}>KBUC Wallet is based on BlueWallet</Text>
+          <Text style={[styles.attributionText, {color: colors.foregroundColor}]}>
+            This application is based on the open-source BlueWallet project, used under the MIT License.
+          </Text>
+          <Text style={[styles.attributionLicense, {color: colors.foregroundColor}]}>
+            Copyright (c) 2018-2023 BlueWallet Services S.R.L.
+          </Text>
+          <TouchableOpacity 
+            style={[styles.buttonLink, stylesHook.buttonLink, {marginTop: 10}]} 
+            onPress={handleOnGithubPress}
+          >
+            <Icon size={22} name="github" type="font-awesome-5" color={colors.foregroundColor} />
+            <Text style={[styles.textLink, stylesHook.textLink]}>View BlueWallet on GitHub</Text>
+          </TouchableOpacity>
+        </View>
+      </BlueCard>
       <ListItem
         leftIcon={{
           name: 'twitter',
@@ -265,6 +284,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     fontWeight: '500',
+  },
+  attribution: {
+    padding: 16,
+    borderRadius: 8,
+  },
+  attributionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  attributionText: {
+    fontSize: 14,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  attributionLicense: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   buildWith: {
     padding: 16,

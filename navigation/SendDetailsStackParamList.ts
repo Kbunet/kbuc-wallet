@@ -27,6 +27,13 @@ export type SendDetailsParams = {
   txType: string;
   supportRewardAddress: string;
   supportRewardAmount: number;
+  // Profile parameters
+  profile?: string;
+  period?: string;
+  // Metadata parameters
+  metaName?: string;
+  metaLink?: string;
+  metaAppData?: string;
 };
 
 export type SendDetailsStackParamList = {

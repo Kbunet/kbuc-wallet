@@ -140,15 +140,35 @@ const SendDetails = () => {
   const [paramId, setParamId] = useState(0);
   const [proposedValue, setProposedValue] = useState("");
   const [targetVersion, setTargetVersion] = useState("");
+  const [platform, setPlatform] = useState("Other");
 
   useEffect(() => {
-    if (routeParams.profile) {
+    console.log('SendDetails - Route Params:', JSON.stringify(routeParams, null, 2));
+    
+    // Handle profile parameters if provided
+    if (typeof routeParams.profile === 'string') {
       setProfile(routeParams.profile);
+      console.log('Setting profile:', routeParams.profile);
     }
-    if (routeParams.period) {
+    if (typeof routeParams.period === 'string') {
       setPeriod(routeParams.period);
+      console.log('Setting period:', routeParams.period);
     }
-  }, [routeParams.profile, routeParams.period]);
+    
+    // Handle metadata parameters if provided
+    if (typeof routeParams.metaName === 'string') {
+      setMetaName(routeParams.metaName);
+      console.log('Setting metaName:', routeParams.metaName);
+    }
+    if (typeof routeParams.metaLink === 'string') {
+      setMetaLink(routeParams.metaLink);
+      console.log('Setting metaLink:', routeParams.metaLink);
+    }
+    if (typeof routeParams.metaAppData === 'string') {
+      setMetaAppData(routeParams.metaAppData);
+      console.log('Setting metaAppData:', routeParams.metaAppData);
+    }
+  }, [routeParams.profile, routeParams.period, routeParams.metaName, routeParams.metaLink, routeParams.metaAppData, routeParams.owner]);
 
   // if cutomFee is not set, we need to choose highest possible fee for wallet balance
   // if there are no funds for even Slow option, use 1 sat/vbyte fee
@@ -691,6 +711,7 @@ const SendDetails = () => {
     OP_BID: 207,
     OP_BID_RECLAIM: 208,
     OP_VOTE: 210,
+    OP_PLATFORM: 212
   };
   
     
@@ -705,6 +726,25 @@ const SendDetails = () => {
     ]);
 
     return script;
+}
+    
+
+const createIncreaseReputationScript = () => {
+  try {
+    // Ensure content is a Buffer
+    const pubkey = wallet.getPubKey();
+    const profileId = crypto.hash160(Buffer.from(pubkey, 'hex'));
+    // Compile the script
+    const script = bitcoin.script.compile([
+      OPS.OP_REPUTATION,
+      profileId
+    ]);
+
+    return script;
+  } catch (error) {
+    console.error('Error creating reputation script:', error);
+    return null;
+  }
 }
 
 const createJoinScript = (signer) => {
@@ -747,40 +787,68 @@ const createMetadataScript = (profile: string) => {
   // console.log("profile:", profile);
   // Ensure content is a Buffer
   const profileBuffer = Buffer.from(profile, 'hex');
-  const nameBuffer = Buffer.from(metaName);
-  const linkBuffer = Buffer.from(metaLink);
-  const appDataBuffer = Buffer.from(metaAppData, 'hex');
+  const nameBuffer = Buffer.from(metaName, 'utf8');
+  const linkBuffer = Buffer.from(metaLink, 'utf8');
+  const appDataBuffer = createPlatformScript();
 
   const dataArray = [OPS.OP_META, profileBuffer];
 
-  if (metaName.length && !metaLink.length && !metaAppData.length) {
+  if (metaName.length) {
     // only name was provided
-    dataArray.push(Buffer.from("name"));
+    dataArray.push(Buffer.from("name", 'utf8'));
     dataArray.push(nameBuffer);
-  } else if (metaName.length && metaLink.length && !metaAppData.length) {
+  } 
+  if (metaLink.length) {
     // only name and link were provided
-    dataArray.push(Buffer.from("name"));
-    dataArray.push(nameBuffer);
+    dataArray.push(Buffer.from("link", 'utf8'));
     dataArray.push(linkBuffer);
-  } else if (metaLink.length && !metaName.length && !metaAppData.length) {
-    // only link was provided
-    dataArray.push(Buffer.from("link"));
-    dataArray.push(nameBuffer);
-    dataArray.push(linkBuffer);
-  } else if (metaAppData.length && !metaName.length && !metaLink.length) {
+  } 
+  if (metaAppData.length) {
     // only application data was provided
-    dataArray.push(Buffer.from("appdata"));
-    dataArray.push(appDataBuffer);
-  } else if (metaAppData.length && metaName.length && metaLink.length) {
-    // all fields were provided
-    dataArray.push(Buffer.from("all"));
-    dataArray.push(nameBuffer);
-    dataArray.push(linkBuffer);
+    dataArray.push(Buffer.from("appdata", 'utf8'));
     dataArray.push(appDataBuffer);
   }
   // Compile the script
   const script = bitcoin.script.compile(dataArray);
-  // console.log("script:", script.toString('hex'));
+  console.log("script:", script.toString('hex'));
+
+  return script;
+}
+
+const createDomainScript = (profile: string) => {
+  // Create nameBuffer from the domain name
+  const nameBuffer = Buffer.from(metaName, 'utf8');
+  // Compute the profile buffer by hashing the nameBuffer with hash160
+  const profileBuffer = crypto.hash160(nameBuffer);
+  // For example: 'kbunet.net' should give hash160 = '14b794e4c0b60646e3262e7f7191bd976018bffb'
+  console.log("Domain name:", metaName);
+  console.log("Domain link:", metaLink);
+  console.log("Domain app data:", metaAppData);
+  console.log("Computed profile hash160:", profileBuffer.toString('hex'));
+  
+  const linkBuffer = Buffer.from(metaLink, 'utf8');
+  const appDataBuffer = createPlatformScript();
+
+  const dataArray = [OPS.OP_META, profileBuffer];
+
+  if (metaName.length) {
+    // only name was provided
+    dataArray.push(Buffer.from("name", 'utf8'));
+    dataArray.push(nameBuffer);
+  } 
+  if (metaLink.length) {
+    // only name and link were provided
+    dataArray.push(Buffer.from("link", 'utf8'));
+    dataArray.push(linkBuffer);
+  } 
+  if (metaAppData.length) {
+    // only application data was provided
+    dataArray.push(Buffer.from("appdata", 'utf8'));
+    dataArray.push(appDataBuffer);
+  }
+  // Compile the script
+  const script = bitcoin.script.compile(dataArray);
+  console.log("script:", script.toString('hex'));
 
   return script;
 }
@@ -846,6 +914,43 @@ const createEnsuranceReleaseScript = (profile) => {
   ]);
 
   return script;
+}
+
+/**
+ * Creates a platform script based on the platform type and metaAppData
+ * @returns {Buffer} - The compiled platform script
+ */
+const createPlatformScript = () => {
+  let dataBuffer: Buffer;
+
+  // Process the data based on the platform type
+  if (platform === "platform_name") {
+    // For Platform (name), compute hash160 of the name
+    dataBuffer = crypto.hash160(Buffer.from(metaAppData));
+    console.log("dataBuffer:", dataBuffer);
+    const script = bitcoin.script.compile([
+      OPS.OP_PLATFORM,
+      dataBuffer,
+    ]);
+    return script;
+  } else if (platform === "platform_id") {
+    // For Platform (ID), use the hex bytes directly
+    try {
+      dataBuffer = Buffer.from(metaAppData, 'hex');
+      const script = bitcoin.script.compile([
+        OPS.OP_PLATFORM,
+        dataBuffer,
+      ]);
+      return script;
+    } catch (error) {
+      console.error('Invalid hex format for Platform ID:', error);
+      throw new Error('Invalid hex format for Platform ID');
+    }
+  } else {
+    // For "Other" or any other option, use the raw data
+    dataBuffer = Buffer.from(metaAppData, 'hex');
+    return dataBuffer
+  }
 }
 
 
@@ -948,6 +1053,8 @@ const encodeVersion = (version) => {
           targets.push({ address: transaction.address, value });
         } else if (txType == 'reputation') {
           targets.push({ value, script: {hex: createReputationScript(transaction.address).toString('hex')} });
+        } else if (txType == 'increaseReputation') {
+          targets.push({ value, script: {hex: createIncreaseReputationScript()?.toString('hex')} });
         } else if (txType == 'join') {
           targets.push({ value, script: {hex: createJoinScript(transaction.address).toString('hex')} });
         } else if (txType == 'leave') {
@@ -958,7 +1065,9 @@ const encodeVersion = (version) => {
           targets.push({ value, script: {hex: createReclaimScript(transaction.address).toString('hex')} });
         } else if (txType == 'metadata') {
           targets.push({ value, script: {hex: createMetadataScript(transaction.address).toString('hex')} });
-        } else if (txType == 'bid') {
+        } else if (txType == 'domain') {
+          targets.push({ value, script: {hex: createDomainScript(transaction.address).toString('hex')} });
+        } else if (['bid', 'offer'].includes(txType)) {
           targets.push({ value, script: {hex: createBidScript(transaction.address).toString('hex')} });
         } else if (txType == 'ensurance') {
           targets.push({ value, script: {hex: createStakeScript().toString('hex')} });
@@ -973,6 +1082,8 @@ const encodeVersion = (version) => {
             targets.push({ address: transaction.address, value: btcToSatoshi(transaction.amount) });
           } else if (txType == 'reputation') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createReputationScript(transaction.address).toString('hex')} });
+          } else if (txType == 'increaseReputation') {
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createIncreaseReputationScript()?.toString('hex')} });
           } else if (txType == 'join') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createJoinScript(transaction.address).toString('hex')} });
           } else if (txType == 'leave') {
@@ -983,7 +1094,9 @@ const encodeVersion = (version) => {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createReclaimScript(transaction.address).toString('hex')} });
           } else if (txType == 'metadata') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createMetadataScript(transaction.address).toString('hex')} });
-          } else if (txType == 'bid') {
+          } else if (txType == 'domain') {
+            targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createDomainScript(transaction.address).toString('hex')} });
+          } else if (['bid', 'offer'].includes(txType)) {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createBidScript(transaction.address).toString('hex')} });
           } else if (txType == 'ensurance') {
             targets.push({ value: btcToSatoshi(transaction.amount), script: {hex: createStakeScript().toString('hex')} });
@@ -1818,7 +1931,7 @@ const encodeVersion = (version) => {
                 />
               </View>
           </>}
-          {txType == 'metadata' && <>
+          {["metadata", "domain"].includes(txType) && <>
             {/* Name */}
             <View style={[styles.memo, stylesHook.memo]}>
               <TextInput
@@ -1857,6 +1970,26 @@ const encodeVersion = (version) => {
                 inputAccessoryViewID={DismissKeyboardInputAccessoryViewID}
               />
             </View>
+            <BlueSpacing10 />
+            
+            {/* Platform Selection */}
+            <View style={[styles.memo, stylesHook.memo]}>
+              <Text style={{ marginLeft: 8, color: '#81868e' }}>Platform:</Text>
+              <View style={{ flex: 1, marginHorizontal: 8 }}>
+                <Picker
+                  selectedValue={platform}
+                  onValueChange={(itemValue) => setPlatform(itemValue)}
+                  style={{ color: colors.foregroundColor }}
+                  dropdownIconColor={colors.foregroundColor}
+                  enabled={!isLoading}
+                >
+                  <Picker.Item label="Platform (name)" value="platform_name" />
+                  <Picker.Item label="Platform (ID)" value="platform_id" />
+                  <Picker.Item label="Other" value="Other" />
+                </Picker>
+              </View>
+            </View>
+            
             {/* App Data */}
             <View style={[styles.memo, stylesHook.memo]}>
               <TextInput

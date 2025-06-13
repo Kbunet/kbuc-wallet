@@ -46,12 +46,12 @@ const ReceiveDetails = () => {
   const wallet = wallets.find(w => w.getID() === walletID);
   const [customLabel, setCustomLabel] = useState('');
   const [customAmount, setCustomAmount] = useState('');
-  const [customUnit, setCustomUnit] = useState(BitcoinUnit.BTC);
+  const [customUnit, setCustomUnit] = useState(BitcoinUnit.KBUC);
   const [bip21encoded, setBip21encoded] = useState('');
   const [isCustom, setIsCustom] = useState(false);
   const [tempCustomLabel, setTempCustomLabel] = useState('');
   const [tempCustomAmount, setTempCustomAmount] = useState('');
-  const [tempCustomUnit, setTempCustomUnit] = useState(BitcoinUnit.BTC);
+  const [tempCustomUnit, setTempCustomUnit] = useState(BitcoinUnit.KBUC);
   const [showPendingBalance, setShowPendingBalance] = useState(false);
   const [showConfirmedBalance, setShowConfirmedBalance] = useState(false);
   const [showAddress, setShowAddress] = useState(false);
@@ -400,7 +400,7 @@ const ReceiveDetails = () => {
     setIsCustom(true);
     let amount = tempCustomAmount;
     switch (tempCustomUnit) {
-      case BitcoinUnit.BTC:
+      case BitcoinUnit.KBUC:
         // nop
         break;
       case BitcoinUnit.SATS:
@@ -446,12 +446,12 @@ const ReceiveDetails = () => {
   const getDisplayAmount = () => {
     if (Number(customAmount) > 0) {
       switch (customUnit) {
-        case BitcoinUnit.BTC:
-          return customAmount + ' BTC';
+        case BitcoinUnit.KBUC:
+          return customAmount + ' KBUC';
         case BitcoinUnit.SATS:
-          return satoshiToBTC(customAmount) + ' BTC';
+          return satoshiToBTC(customAmount) + ' KBUC';
         case BitcoinUnit.LOCAL_CURRENCY:
-          return fiatToBTC(customAmount) + ' BTC';
+          return fiatToBTC(customAmount) + ' KBUC';
       }
       return customAmount + ' ' + customUnit;
     } else {

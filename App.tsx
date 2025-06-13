@@ -12,13 +12,15 @@ import { navigationRef } from './NavigationService';
 import { StorageProvider } from './components/Context/StorageProvider';
 import OTPHandler from './components/OTPHandler';
 import NotificationOTPHandler, { NotificationOTPHandlerRef } from './components/NotificationOTPHandler';
+import NotificationTransactionHandler, { NotificationTransactionHandlerRef } from './components/NotificationTransactionHandler';
 import SendRequestHandler from './components/SendRequestHandler';
 import ProfileVerificationHandler from './components/ProfileVerificationHandler';
-import { initializeNotificationService, processPendingOTPNotifications } from './services/NotificationService';
+import { initializeNotificationService, processPendingOTPNotifications, processPendingTransactionNotifications } from './services/NotificationService';
 
 const App = () => {
   const colorScheme = useColorScheme();
   const notificationOTPHandlerRef = useRef<NotificationOTPHandlerRef>(null);
+  const notificationTransactionHandlerRef = useRef<NotificationTransactionHandlerRef>(null);
 
   // Initialize notification service when the app starts
   useEffect(() => {
@@ -52,6 +54,19 @@ const App = () => {
       clearTimeout(timer);
     };
   }, []);
+  
+  // Process any pending transaction notifications after a delay
+  useEffect(() => {
+    // Process any pending transaction notifications after a short delay
+    const timer = setTimeout(() => {
+      console.log('Processing any pending transaction notifications');
+      processPendingTransactionNotifications();
+    }, 2500); // Slightly longer delay than OTP to avoid conflicts
+    
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
 
   return (
     <LargeScreenProvider>
@@ -61,6 +76,7 @@ const App = () => {
             <SettingsProvider>
               <OTPHandler />
               <NotificationOTPHandler ref={notificationOTPHandlerRef} />
+              <NotificationTransactionHandler ref={notificationTransactionHandlerRef} />
               <SendRequestHandler />
               <ProfileVerificationHandler />
               <MasterView />

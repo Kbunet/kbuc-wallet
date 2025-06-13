@@ -1,5 +1,5 @@
 export const BitcoinUnit = {
-  BTC: 'BTC',
+  // BTC: 'BTC',
   KBUC: 'KBUC',
   SATS: 'sats',
   LOCAL_CURRENCY: 'local_currency',

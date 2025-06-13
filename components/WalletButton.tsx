@@ -34,7 +34,7 @@ interface WalletButtonProps {
 
 const buttonDetails: Record<string, ButtonDetails> = {
   Bitcoin: {
-    image: require('../img/addWallet/bitcoin.png'),
+    image: require('../img/addWallet/kbuc.png'),
     title: loc.wallets.add_bitcoin,
     explain: loc.wallets.add_bitcoin_explain,
     borderColorActive: 'newBlue',
